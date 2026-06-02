@@ -46,5 +46,5 @@ supabase/.temp/*
 
 # Docs
 /docs/*
-/.vscode/*
-/.claude/*
+/.vscode
+/.claude

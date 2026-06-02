@@ -1,0 +1,43 @@
+<svg width="100%" viewBox="0 0 680 88" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Chow AI header logo</title>
+  <desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Compact horizontal Chow AI logo for the AI screen header — bowl icon with sparkle mark beside two-tone wordmark</desc>
+
+  <!-- ── ICON MARK ── -->
+  <circle cx="44" cy="44" r="32" fill="#15803D" style="fill:rgb(21, 128, 61);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <circle cx="44" cy="44" r="26" fill="#166534" style="fill:rgb(22, 101, 52);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- bowl body -->
+  <path d="M22 40 Q22 62 44 67 Q66 62 66 40 Z" fill="#22C55E" style="fill:rgb(34, 197, 94);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- bowl rim -->
+  <ellipse cx="44" cy="40" rx="22" ry="7" fill="#4ADE80" style="fill:rgb(74, 222, 128);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- bowl inner -->
+  <ellipse cx="44" cy="40" rx="16" ry="5" fill="#22C55E" style="fill:rgb(34, 197, 94);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- food mound -->
+  <ellipse cx="44" cy="38" rx="13" ry="5" fill="#DCFCE7" style="fill:rgb(220, 252, 231);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- steam lines -->
+  <path d="M36 32 Q33 25 36 18 Q39 11 36 6" fill="none" stroke="#DCFCE7" stroke-width="2" stroke-linecap="round" style="fill:none;stroke:rgb(220, 252, 231);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M44 30 Q41 22 44 14 Q47 6 44 2" fill="none" stroke="#DCFCE7" stroke-width="2" stroke-linecap="round" style="fill:none;stroke:rgb(220, 252, 231);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <path d="M52 32 Q49 25 52 18 Q55 11 52 6" fill="none" stroke="#DCFCE7" stroke-width="2" stroke-linecap="round" style="fill:none;stroke:rgb(220, 252, 231);color:rgb(255, 255, 255);stroke-width:2px;stroke-linecap:round;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- 4-point AI spark replacing leaf — top right -->
+  <path d="M72,16 L74.5,10 L77,16 L83,18.5 L77,21 L74.5,27 L72,21 L66,18.5 Z" fill="#4ADE80" style="fill:rgb(74, 222, 128);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- tiny dot -->
+  <circle cx="85" cy="11" r="2.5" fill="#DCFCE7" opacity="0.6" style="fill:rgb(220, 252, 231);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.6;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- second small spark bottom right of circle -->
+  <path d="M70,62 L71.5,58 L73,62 L77,63.5 L73,65 L71.5,69 L70,65 L66,63.5 Z" fill="#4ADE80" opacity="0.7" style="fill:rgb(74, 222, 128);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.7;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <!-- ── WORDMARK ── -->
+  <text x="96" y="56" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="700" letter-spacing="-0.5" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Georgia, &quot;Times New Roman&quot;, serif;font-size:34px;font-weight:700;text-anchor:start;dominant-baseline:auto">
+    <tspan fill="#15803D" style="fill:rgb(21, 128, 61);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Georgia, &quot;Times New Roman&quot;, serif;font-size:34px;font-weight:700;text-anchor:start;dominant-baseline:auto">Chow</tspan><tspan fill="#22C55E" style="fill:rgb(34, 197, 94);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:Georgia, &quot;Times New Roman&quot;, serif;font-size:34px;font-weight:700;text-anchor:start;dominant-baseline:auto"> AI</tspan>
+  </text>
+
+  <!-- sparkle accent after "AI" -->
+  <path d="M218,28 L220,22 L222,28 L228,30 L222,32 L220,38 L218,32 L212,30 Z" fill="#22C55E" opacity="0.7" style="fill:rgb(34, 197, 94);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.7;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+  <circle cx="233" cy="22" r="2.5" fill="#15803D" opacity="0.4" style="fill:rgb(21, 128, 61);stroke:none;color:rgb(255, 255, 255);stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.4;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+</svg>

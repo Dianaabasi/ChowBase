@@ -1,0 +1,297 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useThemeColors } from '../../constants/theme';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { GreenButton } from '../../components/ui/GreenButton';
+import { BlurHeader } from '../../components/ui/BlurHeader';
+import { supabase } from '../../lib/supabase';
+import { EnvelopeSimple, LockKey, Eye, EyeSlash, GoogleLogo, User, At } from 'phosphor-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+import { useModalStore } from '../../stores/modalStore';
+
+WebBrowser.maybeCompleteAuthSession();
+
+export default function RegisterScreen() {
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const colors = useThemeColors();
+
+  const handleRegister = async () => {
+    if (!fullName || !username || !email || !password || !confirmPassword) {
+      useModalStore.getState().showAlert({
+        title: 'Error',
+        message: 'Please fill in all fields'
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      useModalStore.getState().showAlert({
+        title: 'Error',
+        message: 'Passwords do not match'
+      });
+      return;
+    }
+
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          username: username,
+        }
+      }
+    });
+
+    setLoading(false);
+    if (error) {
+      useModalStore.getState().showAlert({
+        title: 'Registration Failed',
+        message: error.message
+      });
+    } else {
+      useModalStore.getState().showAlert({
+        title: 'Success',
+        message: 'Please check your email to verify your account.',
+        onConfirm: () => router.replace('/login')
+      });
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    const redirectUrl = Linking.createURL('/(tabs)/feed');
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+      },
+    });
+    setLoading(false);
+    
+    if (error) {
+      useModalStore.getState().showAlert({
+        title: 'Google Signup Failed',
+        message: error.message
+      });
+    } else if (data?.url) {
+      await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+    }
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      style={[styles.container, { backgroundColor: colors.bgPrimary }]} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <BlurHeader title="" transparent />
+      
+      <View style={styles.content}>
+        <View style={styles.headerContainer}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>Create Account</Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Join the ChowBase community</Text>
+        </View>
+
+        <GlassCard style={styles.card}>
+          <View style={styles.inputContainer}>
+            <User size={20} color={colors.textSecondary} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              placeholder="Full Name"
+              placeholderTextColor={colors.textMuted}
+              value={fullName}
+              onChangeText={setFullName}
+            />
+          </View>
+
+          <View style={[styles.inputContainer, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}>
+            <At size={20} color={colors.textSecondary} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              placeholder="Username"
+              placeholderTextColor={colors.textMuted}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+          </View>
+
+          <View style={[styles.inputContainer, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}>
+            <EnvelopeSimple size={20} color={colors.textSecondary} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              placeholder="Email address"
+              placeholderTextColor={colors.textMuted}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+            />
+          </View>
+          
+          <View style={[styles.inputContainer, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}>
+            <LockKey size={20} color={colors.textSecondary} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              placeholder="Password"
+              placeholderTextColor={colors.textMuted}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+              {showPassword ? <EyeSlash size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+            </TouchableOpacity>
+          </View>
+
+          <View style={[styles.inputContainer, { borderTopWidth: 1, borderTopColor: colors.borderSubtle }]}>
+            <LockKey size={20} color={colors.textSecondary} style={styles.icon} />
+            <TextInput
+              style={[styles.input, { color: colors.textPrimary }]}
+              placeholder="Confirm Password"
+              placeholderTextColor={colors.textMuted}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry={!showConfirmPassword}
+            />
+            <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
+              {showConfirmPassword ? <EyeSlash size={20} color={colors.textSecondary} /> : <Eye size={20} color={colors.textSecondary} />}
+            </TouchableOpacity>
+          </View>
+        </GlassCard>
+
+        <GreenButton 
+          title={loading ? "Creating account..." : "Sign Up"} 
+          onPress={handleRegister} 
+          disabled={loading}
+          style={styles.button}
+        />
+
+        <View style={styles.orContainer}>
+          <View style={[styles.orLine, { backgroundColor: colors.borderSubtle }]} />
+          <Text style={[styles.orText, { color: colors.textSecondary }]}>- or -</Text>
+          <View style={[styles.orLine, { backgroundColor: colors.borderSubtle }]} />
+        </View>
+
+        <TouchableOpacity 
+          style={[styles.googleButton, { borderColor: colors.borderSubtle, backgroundColor: colors.bgSecondary }]}
+          onPress={handleGoogleLogin}
+          disabled={loading}
+        >
+          <GoogleLogo size={24} color={colors.textPrimary} weight="bold" />
+          <Text style={[styles.googleButtonText, { color: colors.textPrimary }]}>Continue with Google</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => router.push('/login')}>
+            <Text style={[styles.footerLink, { color: colors.brand.primary }]}>Log In</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  },
+  headerContainer: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  logo: {
+    width: 64,
+    height: 64,
+    marginBottom: 24,
+  },
+  title: {
+    fontFamily: 'Sora-Bold',
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontFamily: 'DM-Sans',
+    fontSize: 16,
+  },
+  card: {
+    marginBottom: 24,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    height: 60,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontFamily: 'DM-Sans',
+    fontSize: 16,
+    height: '100%',
+  },
+  eyeIcon: {
+    padding: 8,
+  },
+  button: {
+    marginBottom: 16,
+  },
+  orContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  orLine: {
+    flex: 1,
+    height: 1,
+  },
+  orText: {
+    fontFamily: 'DM-Sans',
+    fontSize: 14,
+    marginHorizontal: 16,
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 56,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 24,
+  },
+  googleButtonText: {
+    fontFamily: 'Sora-SemiBold',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontFamily: 'DM-Sans',
+    fontSize: 14,
+  },
+  footerLink: {
+    fontFamily: 'Sora-SemiBold',
+    fontSize: 14,
+  },
+});

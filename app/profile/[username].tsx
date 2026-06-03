@@ -10,6 +10,9 @@ import { BlurHeader } from '../../components/ui/BlurHeader';
 import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { format } from 'date-fns';
+import { useFollow } from '../../hooks/useFollow';
+import { useUserRecipes } from '../../hooks/useUserRecipes';
+import { RecipeCard } from '../../components/feed/RecipeCard';
 
 const { width } = Dimensions.get('window');
 
@@ -22,21 +25,8 @@ export default function ProfileScreen() {
 
   const isOwnProfile = user?.username === username;
 
-  const { data: recipeCount } = useQuery({
-    queryKey: ['recipeCount', profile?.id],
-    queryFn: async () => {
-      if (!profile?.id) return 0;
-      const { count, error } = await supabase
-        .from('recipes')
-        .select('*', { count: 'exact', head: true })
-        .eq('author_id', profile.id)
-        .eq('status', 'published');
-      
-      if (error) throw error;
-      return count || 0;
-    },
-    enabled: !!profile?.id,
-  });
+  const { data: recipes = [], isLoading: recipesLoading } = useUserRecipes(profile?.id);
+  const { isFollowing, toggleFollow, followersCount, followingCount, isToggling } = useFollow(profile?.id);
 
   if (profileLoading) {
     return <View style={[styles.container, { backgroundColor: colors.bgPrimary }]} />;
@@ -53,9 +43,28 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <BlurHeader title={profile.username || ''} rightComponent={
-        isOwnProfile && (
+        isOwnProfile ? (
           <TouchableOpacity onPress={() => router.push('/profile/edit')}>
             <Text style={{ color: colors.brand.primary, fontFamily: 'Sora-SemiBold' }}>Edit</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            onPress={toggleFollow} 
+            disabled={isToggling}
+            style={{ 
+              backgroundColor: isFollowing ? colors.bgSecondary : colors.brand.primary,
+              paddingHorizontal: 16,
+              paddingVertical: 6,
+              borderRadius: 20
+            }}
+          >
+            <Text style={{ 
+              color: isFollowing ? colors.textPrimary : '#FFF', 
+              fontFamily: 'Sora-SemiBold',
+              fontSize: 14
+            }}>
+              {isFollowing ? 'Following' : 'Follow'}
+            </Text>
           </TouchableOpacity>
         )
       } />
@@ -77,11 +86,11 @@ export default function ProfileScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.textPrimary }]}>0</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>{followersCount}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Followers</Text>
             </View>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, { color: colors.textPrimary }]}>0</Text>
+              <Text style={[styles.statValue, { color: colors.textPrimary }]}>{followingCount}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Following</Text>
             </View>
             <View style={styles.statItem}>
@@ -96,10 +105,19 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.gridContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Recipes ({recipeCount || 0})</Text>
-          <Text style={[styles.emptyText, { color: colors.textMuted }]}>
-            {isOwnProfile ? "You haven't published any recipes yet." : "This chef hasn't published any recipes yet."}
-          </Text>
+          <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Recipes ({recipes.length})</Text>
+          
+          {recipesLoading ? (
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Loading recipes...</Text>
+          ) : recipes.length > 0 ? (
+            recipes.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))
+          ) : (
+            <Text style={[styles.emptyText, { color: colors.textMuted }]}>
+              {isOwnProfile ? "You haven't published any recipes yet." : "This chef hasn't published any recipes yet."}
+            </Text>
+          )}
         </View>
       </ScrollView>
     </View>

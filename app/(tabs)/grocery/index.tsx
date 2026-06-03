@@ -5,9 +5,11 @@ import { CheckCircle, CircleIcon, Plus, Trash } from 'phosphor-react-native';
 import { useThemeColors } from '../../../constants/theme';
 import { BlurHeader } from '../../../components/ui/BlurHeader';
 import { useGroceryStore, GroceryItem } from '../../../stores/groceryStore';
+import { Swipeable } from 'react-native-gesture-handler';
+import { useModalStore } from '../../../stores/modalStore';
 
 export default function GroceryScreen() {
-  const { items, addItem, toggleItem, removeItem, clearCompleted } = useGroceryStore();
+  const { items, addItem, toggleItem, removeItem, clearAll } = useGroceryStore();
   const [newItemName, setNewItemName] = useState('');
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
@@ -40,51 +42,76 @@ export default function GroceryScreen() {
   return (
     <KeyboardAvoidingView 
       style={[styles.container, { backgroundColor: colors.bgPrimary }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <BlurHeader title="Grocery List" rightComponent={
-        <TouchableOpacity onPress={clearCompleted}>
-          <Text style={{ color: colors.brand.primary, fontFamily: 'Sora-SemiBold' }}>Clear Done</Text>
-        </TouchableOpacity>
-      } />
+      <BlurHeader 
+        hideBack
+        title="Grocery List" 
+        titleColor={colors.brand.primary}
+        extraPaddingTop={16}
+        extraPaddingBottom={8}
+        rightComponent={
+          <TouchableOpacity onPress={() => {
+            useModalStore.getState().showAlert({
+              title: 'Clear Grocery List',
+              message: 'Are you sure you want to clear your entire grocery list? This action cannot be undone.',
+              confirmText: 'Clear All',
+              cancelText: 'Cancel',
+              showCancel: true,
+              isDestructive: true,
+              onConfirm: clearAll
+            });
+          }}>
+            <Text style={{ color: colors.brand.primary, fontFamily: 'Sora-SemiBold' }}>Clear All</Text>
+          </TouchableOpacity>
+        } 
+      />
 
       <SectionList
         sections={sections}
         keyExtractor={item => item.id}
-        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 60 }]}
+        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + 90 }]}
         renderSectionHeader={({ section: { title } }) => (
           <View style={[styles.sectionHeader, { backgroundColor: colors.bgPrimary }]}>
             <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>{title}</Text>
           </View>
         )}
         renderItem={({ item }) => (
-          <View style={[styles.itemRow, { backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
-            <TouchableOpacity style={styles.checkBtn} onPress={() => toggleItem(item.id)}>
-              {item.is_checked ? (
-                <CheckCircle size={24} color={colors.success} weight="fill" />
-              ) : (
-                <CircleIcon size={24} color={colors.textMuted} />
-              )}
-            </TouchableOpacity>
-            
-            <View style={styles.itemInfo}>
-              <Text style={[
-                styles.itemName, 
-                { color: item.is_checked ? colors.textMuted : colors.textPrimary },
-                item.is_checked && styles.textStrikethrough
-              ]}>
-                {item.name}
-              </Text>
-              <Text style={[styles.itemAmount, { color: colors.textSecondary }]}>
-                {item.amount} {item.unit}
-              </Text>
+          <Swipeable
+            renderRightActions={() => (
+              <TouchableOpacity 
+                style={[styles.deleteSwipeBtn, { backgroundColor: colors.error }]}
+                onPress={() => removeItem(item.id)}
+              >
+                <Trash size={24} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            containerStyle={{ overflow: 'visible' }}
+          >
+            <View style={[styles.itemRow, { backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
+              <TouchableOpacity style={styles.checkBtn} onPress={() => toggleItem(item.id)}>
+                {item.is_checked ? (
+                  <CheckCircle size={24} color={colors.success} weight="fill" />
+                ) : (
+                  <CircleIcon size={24} color={colors.textMuted} />
+                )}
+              </TouchableOpacity>
+              
+              <View style={styles.itemInfo}>
+                <Text style={[
+                  styles.itemName, 
+                  { color: item.is_checked ? colors.textMuted : colors.textPrimary },
+                  item.is_checked && styles.textStrikethrough
+                ]}>
+                  {item.name}
+                </Text>
+                <Text style={[styles.itemAmount, { color: colors.textSecondary }]}>
+                  {item.amount} {item.unit}
+                </Text>
+              </View>
             </View>
-
-            <TouchableOpacity style={styles.deleteBtn} onPress={() => removeItem(item.id)}>
-              <Trash size={20} color={colors.error} />
-            </TouchableOpacity>
-          </View>
+          </Swipeable>
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -120,7 +147,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   listContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 24,
   },
   sectionHeader: {
     paddingVertical: 8,
@@ -157,8 +184,13 @@ const styles = StyleSheet.create({
     fontFamily: 'DM-Sans',
     fontSize: 13,
   },
-  deleteBtn: {
-    padding: 8,
+  deleteSwipeBtn: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 60,
+    marginBottom: 8,
+    borderRadius: 16,
+    marginLeft: 8,
   },
   emptyContainer: {
     padding: 40,
@@ -170,10 +202,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   inputContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     paddingHorizontal: 16,
     paddingTop: 12,
     borderTopWidth: 1,
@@ -185,7 +213,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingHorizontal: 8,
     paddingVertical: 8,
-    marginBottom: 80, // Tab bar clearance
   },
   input: {
     flex: 1,

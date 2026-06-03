@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { useThemeColors } from '../../constants/theme';
 import { useModalStore } from '../../stores/modalStore';
+import { CheckCircle, WarningCircle } from 'phosphor-react-native';
 
 export function ConfirmModal() {
   const colors = useThemeColors();
@@ -27,8 +28,18 @@ export function ConfirmModal() {
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={[styles.modal, { backgroundColor: colors.bgPrimary }]}>
-              <Text style={[styles.title, { color: colors.textPrimary }]}>{title}</Text>
-              <Text style={[styles.message, { color: colors.textSecondary }]}>{message}</Text>
+              {title === 'Success' && (
+                <View style={styles.iconContainer}>
+                  <CheckCircle size={48} color={colors.brand.primary} weight="fill" />
+                </View>
+              )}
+              {title === 'Error' && (
+                <View style={styles.iconContainer}>
+                  <WarningCircle size={48} color={colors.error} weight="fill" />
+                </View>
+              )}
+              <Text style={[styles.title, { color: colors.textPrimary, textAlign: (title === 'Success' || title === 'Error') ? 'center' : 'left' }]}>{title}</Text>
+              <Text style={[styles.message, { color: colors.textSecondary, textAlign: (title === 'Success' || title === 'Error') ? 'center' : 'left' }]}>{message}</Text>
               
               {!autoDismiss && (
                 <View style={styles.actions}>
@@ -78,6 +89,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Sora-Bold', 
     fontSize: 18, 
     marginBottom: 8 
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   message: { 
     fontFamily: 'DM-Sans', 

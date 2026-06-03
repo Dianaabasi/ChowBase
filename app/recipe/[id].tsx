@@ -1,20 +1,26 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Video, ResizeMode } from 'expo-av';
 import { Image } from 'expo-image';
+import * as Clipboard from 'expo-clipboard';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkle, ChatCircle, Heart, ShareNetwork, SpeakerHigh, SpeakerX } from 'phosphor-react-native';
+import { Sparkle, ChatCircle, Heart, ShareNetwork, SpeakerHigh, SpeakerX, CornersOut, ShoppingCart, CookingPot, CaretRight, SealCheck } from 'phosphor-react-native';
 
-import { useThemeColors } from '../../../constants/theme';
-import { supabase } from '../../../lib/supabase';
-import { Recipe } from '../../../types';
-import { BlurHeader } from '../../../components/ui/BlurHeader';
-import { Avatar } from '../../../components/ui/Avatar';
-import { CommentSheet } from '../../../components/recipe/CommentSheet';
-import { useChatStore } from '../../../stores/chatStore';
+import { useThemeColors } from '../../constants/theme';
+import { supabase } from '../../lib/supabase';
+import { Recipe } from '../../types';
+import { BlurHeader } from '../../components/ui/BlurHeader';
+import { Avatar } from '../../components/ui/Avatar';
+import { CommentSheet } from '../../components/recipe/CommentSheet';
+import { useChatStore } from '../../stores/chatStore';
+import { useModalStore } from '../../stores/modalStore';
+import { useAuthStore } from '../../stores/authStore';
+import { useLike } from '../../hooks/useLike';
+import { useGroceryStore } from '../../stores/groceryStore';
+import { CookModeView } from '../../components/recipe/CookModeView';
 
 const { width } = Dimensions.get('window');
 
@@ -69,7 +75,10 @@ export default function RecipeDetailScreen() {
   
   const [isMuted, setIsMuted] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isCookMode, setIsCookMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients');
+
+  const { isLiked, toggleLike } = useLike(id);
 
   const { data: recipe, isLoading } = useQuery({
     queryKey: ['recipe', id],
@@ -78,8 +87,8 @@ export default function RecipeDetailScreen() {
         .from('recipes')
         .select(`
           *,
-          profiles(username, avatar_url, is_verified),
-          recipe_ingredients(*),
+          profiles!recipes_author_id_fkey(username, avatar_url, is_verified),
+          recipe_ingredients:ingredients(*),
           recipe_steps(*)
         `)
         .eq('id', id)
@@ -109,6 +118,19 @@ export default function RecipeDetailScreen() {
 
   const sortedSteps = [...(recipe.recipe_steps || [])].sort((a, b) => a.step_number - b.step_number);
 
+  const handleShare = async () => {
+    const link = `chowbase://recipe/${recipe.id}`;
+    useModalStore.getState().showAlert({
+      title: 'Share Recipe',
+      message: `Share this link with your friends to show them this amazing recipe:\n\n${link}`,
+      confirmText: 'Copy Link',
+      showCancel: true,
+      onConfirm: async () => {
+        await Clipboard.setStringAsync(link);
+      }
+    });
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <BlurHeader transparent onBack={() => router.back()} />
@@ -128,13 +150,18 @@ export default function RecipeDetailScreen() {
                 isMuted={isMuted}
                 useNativeControls={false}
               />
-              <TouchableOpacity style={styles.muteButton} onPress={() => setIsMuted(!isMuted)}>
-                {isMuted ? (
-                  <SpeakerX size={20} color="#FFF" weight="fill" />
-                ) : (
-                  <SpeakerHigh size={20} color="#FFF" weight="fill" />
-                )}
-              </TouchableOpacity>
+              <View style={styles.videoControls}>
+                <TouchableOpacity style={styles.videoBtn} onPress={() => setIsMuted(!isMuted)}>
+                  {isMuted ? (
+                    <SpeakerX size={20} color="#FFF" weight="fill" />
+                  ) : (
+                    <SpeakerHigh size={20} color="#FFF" weight="fill" />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.videoBtn} onPress={() => videoRef.current?.presentFullscreenPlayer()}>
+                  <CornersOut size={20} color="#FFF" weight="fill" />
+                </TouchableOpacity>
+              </View>
             </>
           ) : (
             <Image 
@@ -155,19 +182,24 @@ export default function RecipeDetailScreen() {
               onPress={() => router.push(`/profile/${recipe.profiles?.username}`)}
             >
               <Avatar url={recipe.profiles?.avatar_url} name={recipe.profiles?.username} size={36} />
-              <Text style={[styles.authorName, { color: colors.textPrimary }]}>
-                {recipe.profiles?.username}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Text style={[styles.authorName, { color: colors.textPrimary }]}>
+                  {recipe.profiles?.username}
+                </Text>
+                {recipe.profiles?.is_verified && (
+                  <SealCheck size={18} color="#3B82F6" weight="fill" />
+                )}
+              </View>
             </TouchableOpacity>
             
             <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.actionBtn}>
-                <Heart size={24} color={colors.textSecondary} />
+              <TouchableOpacity style={styles.actionBtn} onPress={toggleLike}>
+                <Heart size={24} color={isLiked ? '#E11D48' : colors.textSecondary} weight={isLiked ? 'fill' : 'regular'} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionBtn} onPress={() => setShowComments(true)}>
                 <ChatCircle size={24} color={colors.textSecondary} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionBtn}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
                 <ShareNetwork size={24} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -203,18 +235,51 @@ export default function RecipeDetailScreen() {
           {/* Tab Content */}
           <View style={styles.tabContent}>
             {activeTab === 'ingredients' ? (
-              <View>
-                {recipe.recipe_ingredients?.map((ing) => (
-                  <View key={ing.id} style={[styles.ingredientRow, { borderBottomColor: colors.borderSubtle }]}>
-                    <Text style={[styles.ingredientName, { color: colors.textPrimary }]}>{ing.ingredient_name}</Text>
+              <View style={styles.ingredientsContainer}>
+                {recipe.recipe_ingredients?.map((ing: any) => (
+                  <View key={ing.id} style={styles.ingredientRow}>
+                    <View style={[styles.ingredientDot, { backgroundColor: colors.brand.primary }]} />
+                    <Text style={[styles.ingredientName, { color: colors.textPrimary }]}>{ing.name}</Text>
+                    <View style={[styles.ingredientLine, { borderBottomColor: colors.borderSubtle }]} />
                     <Text style={[styles.ingredientAmount, { color: colors.textSecondary }]}>
-                      {ing.amount} {ing.unit}
+                      {ing.quantity} {ing.unit}
                     </Text>
                   </View>
                 ))}
+
+                <TouchableOpacity 
+                  style={[styles.groceryBtn, { backgroundColor: colors.brand.primary }]}
+                  onPress={() => {
+                    recipe.recipe_ingredients?.forEach((ing: any) => {
+                      useGroceryStore.getState().addItem({
+                        name: ing.name,
+                        amount: parseInt(ing.quantity) || 1,
+                        unit: ing.unit || 'pcs',
+                        market_section: ing.market_section || 'General'
+                      });
+                    });
+                    useModalStore.getState().showAlert({
+                      title: 'Added to Groceries',
+                      message: 'All ingredients have been added to your Grocery list!',
+                      confirmText: 'Awesome'
+                    });
+                  }}
+                >
+                  <ShoppingCart size={20} color="#FFF" weight="fill" />
+                  <Text style={styles.groceryBtnText}>Add to Grocery List</Text>
+                </TouchableOpacity>
               </View>
             ) : (
-              <View>
+              <View style={styles.instructionsContainer}>
+                <TouchableOpacity 
+                  style={[styles.startCookingBtn, { backgroundColor: colors.brand.primary }]}
+                  onPress={() => setIsCookMode(true)}
+                >
+                  <CookingPot size={22} color="#FFF" weight="fill" />
+                  <Text style={styles.startCookingBtnText}>Start Cooking Mode</Text>
+                  <CaretRight size={20} color="#FFF" weight="bold" />
+                </TouchableOpacity>
+
                 {sortedSteps.map((step) => (
                   <View key={step.id} style={styles.stepRow}>
                     <View style={[styles.stepNumberContainer, { backgroundColor: colors.brand.primary }]}>
@@ -255,7 +320,7 @@ export default function RecipeDetailScreen() {
           activeOpacity={0.9}
         >
           <Sparkle size={20} color="#FFF" weight="fill" />
-          <Text style={styles.aiButtonText}>Ask Chef AI</Text>
+          <Text style={styles.aiButtonText}>Ask ChowAI</Text>
         </TouchableOpacity>
       </View>
 
@@ -264,6 +329,10 @@ export default function RecipeDetailScreen() {
         visible={showComments}
         onClose={() => setShowComments(false)}
       />
+
+      <Modal visible={isCookMode} animationType="slide" transparent={false}>
+        <CookModeView recipe={recipe} onClose={() => setIsCookMode(false)} />
+      </Modal>
     </View>
   );
 }
@@ -281,14 +350,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  muteButton: {
+  videoControls: {
     position: 'absolute',
     bottom: 24,
     right: 16,
+    flexDirection: 'row',
+    gap: 12,
+  },
+  videoBtn: {
     backgroundColor: 'rgba(0,0,0,0.5)',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -347,19 +420,72 @@ const styles = StyleSheet.create({
   tabContent: {
     paddingTop: 8,
   },
+  ingredientsContainer: {
+    paddingBottom: 24,
+  },
   ingredientRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
-    borderBottomWidth: 1,
+  },
+  ingredientDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 12,
   },
   ingredientName: {
     fontFamily: 'DM-Sans-Medium',
     fontSize: 16,
   },
+  ingredientLine: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    marginHorizontal: 12,
+    opacity: 0.5,
+  },
   ingredientAmount: {
-    fontFamily: 'DM-Sans',
-    fontSize: 15,
+    fontFamily: 'Sora-SemiBold',
+    fontSize: 14,
+  },
+  groceryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 30,
+    marginTop: 24,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  groceryBtnText: {
+    color: '#FFF',
+    fontFamily: 'Sora-Bold',
+    fontSize: 16,
+  },
+  instructionsContainer: {
+    paddingTop: 8,
+  },
+  startCookingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    marginBottom: 32,
+    gap: 12,
+  },
+  startCookingBtnText: {
+    color: '#FFF',
+    fontFamily: 'Sora-Bold',
+    fontSize: 16,
   },
   stepRow: {
     flexDirection: 'row',

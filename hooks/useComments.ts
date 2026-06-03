@@ -25,8 +25,9 @@ export function useComments(recipeId: string) {
   useEffect(() => {
     if (!recipeId) return;
 
+    const channelName = `comments_${recipeId}_${Math.random().toString(36).substring(7)}`;
     const channel = supabase
-      .channel(`comments_${recipeId}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

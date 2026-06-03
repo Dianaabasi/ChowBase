@@ -26,6 +26,9 @@ export default function ChatScreen() {
   const conversation = conversations.find(c => c.id === conversationId);
   const messages = conversation ? conversation.messages : [];
   const isSapaMode = conversation ? conversation.sapaMode : false;
+  
+  // Track how many messages existed when we opened the chat so we don't animate historical messages
+  const initialMessageCount = useRef(messages.length).current;
 
   useEffect(() => {
     if (conversation && conversation.messages.length === 2 && conversation.messages[1].role === 'user') {
@@ -122,7 +125,7 @@ export default function ChatScreen() {
             <ChatBubble 
               key={msg.id} 
               message={msg} 
-              animate={index === messages.length - 1 && msg.role === 'assistant'} 
+              animate={index >= initialMessageCount && index === messages.length - 1 && msg.role === 'assistant'} 
             />
           ))}
           {isTyping && (

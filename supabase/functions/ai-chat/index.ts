@@ -12,13 +12,13 @@ serve(async (req) => {
 
   try {
     const { messages, sapa_mode } = await req.json();
-    
+
     // Simple placeholder for Gemini API integration
     // In production, we would use the GEMINI_API_KEY from Deno.env.get('GEMINI_API_KEY')
     // and make a real fetch call to the Google Generative AI endpoint
-    
-    const sapaContext = sapa_mode ? 
-      "Keep recommendations extremely budget-friendly and use cheap local substitutes." : 
+
+    const sapaContext = sapa_mode ?
+      "Keep recommendations extremely budget-friendly and use cheap local substitutes." :
       "Provide high-quality Nigerian recipes without strict budget limits.";
 
     const systemPrompt = `You are a Nigerian Chef Assistant named ChowBase AI. 
@@ -32,7 +32,7 @@ serve(async (req) => {
 
     // Filter out the frontend welcome message (which has id: '0') 
     const filteredMessages = messages.filter((m: any) => m.id !== '0');
-    
+
     // Gemini strictly requires alternating user/model roles. 
     // We must collapse consecutive messages of the same role.
     const collapsedMessages: any[] = [];
@@ -87,7 +87,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
-      { 
+      {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       },

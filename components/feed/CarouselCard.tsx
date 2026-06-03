@@ -6,7 +6,9 @@ import { Heart, ChatCircle, Timer, Fire } from 'phosphor-react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
+import { CommentSheet } from '../recipe/CommentSheet';
 import { useThemeColors } from '../../constants/theme';
+import { useLike } from '../../hooks/useLike';
 import { Recipe } from '../../types';
 
 interface CarouselCardProps {
@@ -19,11 +21,13 @@ export function CarouselCard({ recipe }: CarouselCardProps) {
   const router = useRouter();
   const colors = useThemeColors();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { isLiked, toggleLike } = useLike(recipe.id);
+  const [showComments, setShowComments] = useState(false);
 
   const steps = recipe.recipe_steps?.sort((a, b) => a.step_number - b.step_number) || [];
 
   const handleCookMode = () => {
-    router.push(`/feed/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}`);
   };
 
   const handleProfile = () => {
@@ -96,8 +100,15 @@ export function CarouselCard({ recipe }: CarouselCardProps) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.likeButton}>
-              <Heart size={24} color={colors.textSecondary} />
+            <TouchableOpacity 
+              style={styles.likeButton}
+              onPress={toggleLike}
+            >
+              <Heart 
+                size={24} 
+                color={isLiked ? '#E11D48' : colors.textSecondary} 
+                weight={isLiked ? 'fill' : 'regular'}
+              />
             </TouchableOpacity>
           </View>
 
@@ -110,12 +121,18 @@ export function CarouselCard({ recipe }: CarouselCardProps) {
               <Text style={styles.cookButtonText}>Cook This 🍳</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.commentBtn}>
+            <TouchableOpacity style={styles.commentBtn} onPress={() => setShowComments(true)}>
               <ChatCircle size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
       </GlassCard>
+
+      <CommentSheet 
+        recipeId={recipe.id}
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </View>
   );
 }

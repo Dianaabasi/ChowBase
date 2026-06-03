@@ -6,7 +6,9 @@ import { Heart, ChatCircle, SpeakerHigh, SpeakerX } from 'phosphor-react-native'
 import { GlassCard } from '../ui/GlassCard';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
+import { CommentSheet } from '../recipe/CommentSheet';
 import { useThemeColors } from '../../constants/theme';
+import { useLike } from '../../hooks/useLike';
 import { Recipe } from '../../types';
 
 interface VideoCardProps {
@@ -21,6 +23,8 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
   const colors = useThemeColors();
   const videoRef = useRef<Video>(null);
   const [isMuted, setIsMuted] = useState(true);
+  const { isLiked, toggleLike } = useLike(recipe.id);
+  const [showComments, setShowComments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
   }, [isVisible]);
 
   const handleCookMode = () => {
-    router.push(`/feed/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}`);
   };
 
   const handleProfile = () => {
@@ -92,8 +96,15 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.likeButton}>
-              <Heart size={24} color={colors.textSecondary} />
+            <TouchableOpacity 
+              style={styles.likeButton}
+              onPress={toggleLike}
+            >
+              <Heart 
+                size={24} 
+                color={isLiked ? '#E11D48' : colors.textSecondary} 
+                weight={isLiked ? 'fill' : 'regular'}
+              />
             </TouchableOpacity>
           </View>
 
@@ -106,12 +117,18 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
               <Text style={styles.cookButtonText}>Cook This 🍳</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.commentBtn}>
+            <TouchableOpacity style={styles.commentBtn} onPress={() => setShowComments(true)}>
               <ChatCircle size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
       </GlassCard>
+
+      <CommentSheet 
+        recipeId={recipe.id}
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </View>
   );
 }

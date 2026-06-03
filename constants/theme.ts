@@ -1,4 +1,5 @@
 import { useColorScheme } from 'react-native';
+import { useThemeStore } from '../stores/themeStore';
 
 export const Colors = {
   brand: {
@@ -35,8 +36,11 @@ export const Colors = {
 };
 
 export function useThemeColors() {
-  const scheme = useColorScheme();
-  const themeColors = scheme === 'dark' ? Colors.dark : Colors.light;
+  const systemScheme = useColorScheme();
+  const { themeMode } = useThemeStore();
+  
+  const isDark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
+  const themeColors = isDark ? Colors.dark : Colors.light;
   return {
     ...themeColors,
     brand: Colors.brand,

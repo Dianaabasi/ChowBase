@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -6,7 +6,9 @@ import { Heart, ChatCircle, Timer, Fire } from 'phosphor-react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
+import { CommentSheet } from '../recipe/CommentSheet';
 import { useThemeColors } from '../../constants/theme';
+import { useLike } from '../../hooks/useLike';
 import { Recipe } from '../../types';
 
 interface RecipeCardProps {
@@ -18,9 +20,11 @@ const { width } = Dimensions.get('window');
 export function RecipeCard({ recipe }: RecipeCardProps) {
   const router = useRouter();
   const colors = useThemeColors();
+  const { isLiked, toggleLike } = useLike(recipe.id);
+  const [showComments, setShowComments] = useState(false);
 
   const handleCookMode = () => {
-    router.push(`/feed/${recipe.id}`);
+    router.push(`/recipe/${recipe.id}`);
   };
 
   const handleProfile = () => {
@@ -53,8 +57,15 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.likeButton}>
-              <Heart size={24} color={colors.textSecondary} />
+            <TouchableOpacity 
+              style={styles.likeButton}
+              onPress={toggleLike}
+            >
+              <Heart 
+                size={24} 
+                color={isLiked ? '#E11D48' : colors.textSecondary} 
+                weight={isLiked ? 'fill' : 'regular'}
+              />
             </TouchableOpacity>
           </View>
 
@@ -82,12 +93,18 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
               <Text style={styles.cookButtonText}>Cook This 🍳</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.commentBtn}>
+            <TouchableOpacity style={styles.commentBtn} onPress={() => setShowComments(true)}>
               <ChatCircle size={24} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
         </View>
       </GlassCard>
+
+      <CommentSheet 
+        recipeId={recipe.id}
+        visible={showComments}
+        onClose={() => setShowComments(false)}
+      />
     </View>
   );
 }

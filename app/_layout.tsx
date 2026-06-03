@@ -121,8 +121,8 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="create-recipe" options={{ presentation: 'modal', headerShown: false }} />
-            <Stack.Screen name="edit-recipe" options={{ presentation: 'modal', headerShown: false }} />
+            <Stack.Screen name="recipe/create" options={{ headerShown: false }} />
+            <Stack.Screen name="recipe/edit/[id]" options={{ headerShown: false }} />
           </Stack>
           <ConfirmModal />
         </ThemeProvider>

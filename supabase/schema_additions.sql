@@ -60,3 +60,55 @@ ALTER TABLE public.grocery_items ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Users can manage own grocery items." ON public.grocery_items;
 CREATE POLICY "Users can manage own grocery items." ON public.grocery_items FOR ALL USING (auth.uid() = user_id);
+
+-- 3. Create Follows Table
+CREATE TABLE IF NOT EXISTS public.follows (
+  follower_id uuid references public.profiles(id) on delete cascade not null,
+  following_id uuid references public.profiles(id) on delete cascade not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  PRIMARY KEY (follower_id, following_id)
+);
+
+-- Enable RLS for Follows
+ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Follows are viewable by everyone." ON public.follows;
+CREATE POLICY "Follows are viewable by everyone." ON public.follows FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Users can insert their own follows." ON public.follows;
+CREATE POLICY "Users can insert their own follows." ON public.follows FOR INSERT WITH CHECK (auth.uid() = follower_id);
+
+DROP POLICY IF EXISTS "Users can delete own follows." ON public.follows;
+CREATE POLICY "Users can delete own follows." ON public.follows FOR DELETE USING (auth.uid() = follower_id);
+
+
+-- Dynamic Categories Table
+DROP TABLE IF EXISTS recipe_categories;
+
+CREATE TABLE recipe_categories (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  is_default BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Insert defaults if not exists
+INSERT INTO recipe_categories (name, is_default) 
+VALUES 
+('Nigerian Soups', true),
+('Rice Dishes', true),
+('Snacks & Pastries', true),
+('Vegan / Plant-Based', true),
+('Meat Lovers', true),
+('Healthy & Diet', true)
+ON CONFLICT (name) DO NOTHING;
+
+-- Enable RLS and add policies
+ALTER TABLE recipe_categories ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can read categories" ON recipe_categories;
+CREATE POLICY "Anyone can read categories" ON recipe_categories FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Authenticated users can create custom categories" ON recipe_categories;
+CREATE POLICY "Authenticated users can create custom categories" ON recipe_categories FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+

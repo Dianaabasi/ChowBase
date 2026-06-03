@@ -13,6 +13,9 @@ interface BlurHeaderProps {
   transparent?: boolean;
   hideBack?: boolean;
   titleComponent?: React.ReactNode;
+  titleColor?: string;
+  extraPaddingTop?: number;
+  extraPaddingBottom?: number;
 }
 
 export function BlurHeader({ 
@@ -21,7 +24,10 @@ export function BlurHeader({
   rightComponent, 
   transparent = false,
   hideBack = false,
-  titleComponent
+  titleComponent,
+  titleColor,
+  extraPaddingTop = 0,
+  extraPaddingBottom = 0
 }: BlurHeaderProps) {
   const insets = useSafeAreaInsets();
   const colors = useThemeColors();
@@ -33,7 +39,10 @@ export function BlurHeader({
   };
 
   const content = (
-    <View style={[styles.content, { paddingTop: insets.top || 16, paddingBottom: 16 }]}>
+    <View style={[styles.content, { 
+      paddingTop: (insets.top || 16) + extraPaddingTop, 
+      paddingBottom: 16 + extraPaddingBottom 
+    }]}>
       <View style={styles.left}>
         {!hideBack && (
           <TouchableOpacity onPress={handleBack} style={styles.backBtn} activeOpacity={0.7}>
@@ -45,7 +54,7 @@ export function BlurHeader({
       <View style={styles.center}>
         {titleComponent ? titleComponent : (
           title && (
-            <Text style={[styles.title, { color: colors.textPrimary }]} numberOfLines={1}>
+            <Text style={[styles.title, { color: titleColor || colors.textPrimary }]} numberOfLines={1}>
               {title}
             </Text>
           )

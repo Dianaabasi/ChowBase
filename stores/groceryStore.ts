@@ -19,6 +19,7 @@ interface GroceryState {
   toggleItem: (id: string) => void;
   removeItem: (id: string) => void;
   clearCompleted: () => void;
+  clearAll: () => void;
 }
 
 export const useGroceryStore = create<GroceryState>()(
@@ -46,6 +47,8 @@ export const useGroceryStore = create<GroceryState>()(
       clearCompleted: () => set((state) => ({
         items: state.items.filter(item => !item.is_checked)
       })),
+      
+      clearAll: () => set({ items: [] }),
     }),
     {
       name: 'chowbase-grocery-storage',

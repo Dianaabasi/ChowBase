@@ -155,13 +155,6 @@ export default function TabLayout() {
 
       {/* Hidden detail screens that shouldn't have a tab button */}
       <Tabs.Screen
-        name="feed/[id]"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
         name="assistant/chat"
         options={{
           href: null,
@@ -173,12 +166,6 @@ export default function TabLayout() {
         options={{
           href: null,
           tabBarStyle: { display: 'none' },
-        }}
-      />
-      <Tabs.Screen
-        name="vault/[id]"
-        options={{
-          href: null,
         }}
       />
     </Tabs>

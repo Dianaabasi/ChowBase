@@ -26,8 +26,8 @@ export interface RecipeStep {
 export interface Ingredient {
   id: string;
   recipe_id: string;
-  ingredient_name: string;
-  amount: number | null;
+  name: string;
+  quantity: string | null;
   unit: string | null;
   market_section: string | null;
 }

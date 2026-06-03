@@ -19,23 +19,37 @@ export default function AssistantHubScreen() {
   const router = useRouter();
   
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
+  const spinAnim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
+          toValue: 1.25,
+          duration: 800,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 800,
           useNativeDriver: true,
         })
       ])
     ).start();
-  }, [pulseAnim]);
+
+    Animated.loop(
+      Animated.timing(spinAnim, {
+        toValue: 1,
+        duration: 4000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [pulseAnim, spinAnim]);
+
+  const spin = spinAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg']
+  });
 
   const createConversation = useChatStore((state) => state.createConversation);
   const conversations = useChatStore((state) => state.conversations);
@@ -84,24 +98,14 @@ export default function AssistantHubScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
-      <BlurHeader 
-        hideBack 
-        titleComponent={
-          <Image 
-            source={require('../../../assets/chowbase_ai_header_logo.svg')} 
-            style={{ width: 420, height: 60 }} 
-            contentFit="contain" 
-          />
-        } 
-      />
+      <View style={[styles.pinnedHeader, { paddingTop: insets.top + 16 }]}>
+        <Image 
+          source={require('../../../assets/chowbase_ai_header_logo.svg')} 
+          style={styles.headerLogo} 
+          contentFit="contain" 
+        />
+        <Text style={[styles.title, { color: colors.textPrimary }]}>How can I help you cook today?</Text>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 60, paddingBottom: 120 }]}>
-        <View style={styles.header}>
-          <Sparkle size={48} color={colors.brand.primary} weight="fill" style={styles.headerIcon} />
-          <Text style={[styles.title, { color: colors.textPrimary }]}>How can I help you cook today?</Text>
-        </View>
-
-        {/* Ask me anything chat entry immediately below the title */}
         <View style={[styles.inlineInputContainer, { backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
           <TextInput
             style={[styles.input, { color: colors.textPrimary }]}
@@ -119,9 +123,11 @@ export default function AssistantHubScreen() {
             <PaperPlaneRight size={20} color="#FFF" weight="fill" />
           </TouchableOpacity>
         </View>
+      </View>
 
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: 120 }]}>
         <View style={styles.sapaToggleRow}>
-          <View>
+          <View style={{ flex: 1, paddingRight: 16 }}>
             <Text style={[styles.sapaTitle, { color: colors.textPrimary }]}>Sapa Mode</Text>
             <Text style={[styles.sapaDesc, { color: colors.textSecondary }]}>Keep recommendations extremely budget-friendly</Text>
           </View>
@@ -153,11 +159,19 @@ export default function AssistantHubScreen() {
             <Text style={[styles.scannerDesc, { color: colors.textSecondary }]}>Scan food to get ingredients and recipe ideas</Text>
           </View>
           <TouchableOpacity 
-            style={[styles.cameraBtn, { backgroundColor: colors.brand.primary }]}
+            style={[styles.cameraBtn, { backgroundColor: colors.brand.primary, overflow: 'visible' }]}
             onPress={() => router.push('/assistant/scanner')}
+            activeOpacity={0.8}
           >
+            <Animated.View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', transform: [{ rotate: spin }] }}>
+              <Sparkle size={14} color="#22C55E" weight="fill" style={{ position: 'absolute', top: -14, left: -14, opacity: 0.8 }} />
+              <Sparkle size={18} color="#22C55E" weight="fill" style={{ position: 'absolute', bottom: -16, right: -16, opacity: 0.9 }} />
+              <Sparkle size={10} color="#22C55E" weight="fill" style={{ position: 'absolute', top: -8, right: -18, opacity: 0.7 }} />
+              <Sparkle size={12} color="#22C55E" weight="fill" style={{ position: 'absolute', bottom: -10, left: -18, opacity: 0.6 }} />
+            </Animated.View>
+
             <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
-              <Camera size={24} color="#FFF" />
+              <Camera size={28} color="#FFF" weight="fill" />
             </Animated.View>
           </TouchableOpacity>
         </GlassCard>
@@ -224,15 +238,25 @@ export default function AssistantHubScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 16 },
-  header: {
-    alignItems: 'center',
-    marginVertical: 32,
+  pinnedHeader: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    zIndex: 10,
   },
-  headerIcon: { marginBottom: 16 },
+  headerLogo: {
+    width: '100%',
+    height: 150,
+    marginBottom: 0,
+    alignSelf: 'center',
+  },
   title: {
     fontFamily: 'Sora-Bold',
     fontSize: 24,
     textAlign: 'center',
+    marginBottom: 24,
+    marginTop: -12,
   },
   sapaToggleRow: {
     flexDirection: 'row',

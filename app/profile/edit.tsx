@@ -12,11 +12,13 @@ import { supabase } from '../../lib/supabase';
 import { uploadRecipeMedia } from '../../lib/cloudinary';
 import { UserCircle, EnvelopeSimple, Phone, IdentificationCard, Camera, Lock } from 'phosphor-react-native';
 import { useModalStore } from '../../stores/modalStore';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function EditProfileScreen() {
   const { user } = useAuthStore();
   const colors = useThemeColors();
   const router = useRouter();
+  const queryClient = useQueryClient();
   
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -45,7 +47,7 @@ export default function EditProfileScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -80,6 +82,9 @@ export default function EditProfileScreen() {
       }).eq('id', user.id);
 
       if (error) throw error;
+      
+      // Invalidate both specific user profile and general profile cache to ensure updates reflect everywhere
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       
       useModalStore.getState().showAlert({
         title: 'Success',
@@ -139,7 +144,7 @@ export default function EditProfileScreen() {
               <EnvelopeSimple size={20} color={colors.textMuted} style={styles.icon} />
               <TextInput
                 style={[styles.input, { color: colors.textMuted }]}
-                value={profile?.email || ''}
+                value={user?.email || profile?.email || ''}
                 editable={false}
               />
               <Lock size={16} color={colors.textMuted} />

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useThemeColors } from '../../constants/theme';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { GreenButton } from '../../components/ui/GreenButton';
 import { BlurHeader } from '../../components/ui/BlurHeader';
 import { supabase } from '../../lib/supabase';
-import { EnvelopeSimple, LockKey, Eye, EyeSlash, GoogleLogo, User, At } from 'phosphor-react-native';
+import { EnvelopeSimple, LockKey, Eye, EyeSlash, GoogleLogo, User, At, CheckSquare, Square } from 'phosphor-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { useModalStore } from '../../stores/modalStore';
@@ -22,6 +22,7 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasAgreed, setHasAgreed] = useState(false);
   const router = useRouter();
   const colors = useThemeColors();
 
@@ -97,7 +98,7 @@ export default function RegisterScreen() {
     >
       <BlurHeader title="" transparent />
       
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerContainer}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>Create Account</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Join the ChowBase community</Text>
@@ -171,10 +172,36 @@ export default function RegisterScreen() {
           </View>
         </GlassCard>
 
+        <View style={styles.agreementContainer}>
+          <TouchableOpacity onPress={() => setHasAgreed(!hasAgreed)} style={styles.checkbox}>
+            {hasAgreed ? (
+              <CheckSquare size={24} color={colors.brand.primary} weight="fill" />
+            ) : (
+              <Square size={24} color={colors.textSecondary} />
+            )}
+          </TouchableOpacity>
+          <Text style={[styles.agreementText, { color: colors.textSecondary }]}>
+            I agree to the{' '}
+            <Text 
+              style={[styles.agreementLink, { color: colors.brand.primary }]} 
+              onPress={() => router.push('/(auth)/terms')}
+            >
+              Terms of Service
+            </Text>
+            {' '}and{' '}
+            <Text 
+              style={[styles.agreementLink, { color: colors.brand.primary }]} 
+              onPress={() => router.push('/(auth)/privacy-policy')}
+            >
+              Privacy Policy
+            </Text>
+          </Text>
+        </View>
+
         <GreenButton 
           title={loading ? "Creating account..." : "Sign Up"} 
           onPress={handleRegister} 
-          disabled={loading}
+          disabled={loading || !hasAgreed}
           style={styles.button}
         />
 
@@ -199,7 +226,7 @@ export default function RegisterScreen() {
             <Text style={[styles.footerLink, { color: colors.brand.primary }]}>Log In</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -207,9 +234,10 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+    paddingVertical: 24,
   },
   headerContainer: {
     alignItems: 'center',
@@ -251,7 +279,25 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   button: {
-    marginBottom: 16,
+    marginBottom: 24,
+  },
+  agreementContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  checkbox: {
+    marginRight: 12,
+  },
+  agreementText: {
+    flex: 1,
+    fontFamily: 'DM-Sans',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  agreementLink: {
+    fontFamily: 'DM-Sans-Medium',
   },
   orContainer: {
     flexDirection: 'row',

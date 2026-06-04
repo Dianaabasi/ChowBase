@@ -42,8 +42,7 @@ export default function PreferencesScreen() {
       const { error } = await supabase
         .from('profiles')
         .update({ 
-          preferences: selected,
-          has_onboarded: true 
+          preferences: selected
         })
         .eq('id', user.id);
 

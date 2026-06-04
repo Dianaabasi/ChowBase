@@ -62,12 +62,6 @@ export default function RegisterScreen() {
         title: 'Registration Failed',
         message: error.message
       });
-    } else {
-      useModalStore.getState().showAlert({
-        title: 'Success',
-        message: 'Please check your email to verify your account.',
-        onConfirm: () => router.replace('/login')
-      });
     }
   };
 

@@ -50,8 +50,7 @@ export default function ChooseUsernameScreen() {
       // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ username: username.toLowerCase() })
-        .eq('id', user.id);
+        .upsert({ id: user.id, username: username.toLowerCase() });
 
       if (updateError) throw updateError;
 
@@ -62,7 +61,7 @@ export default function ChooseUsernameScreen() {
 
       setUser({ ...user, username: username.toLowerCase() });
       
-      router.replace('/preferences');
+      router.replace('/(auth)/preferences');
 
     } catch (e: any) {
       useModalStore.getState().showAlert({

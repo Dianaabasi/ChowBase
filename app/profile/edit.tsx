@@ -74,12 +74,14 @@ export default function EditProfileScreen() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from('profiles').update({
+      const { error } = await supabase.from('profiles').upsert({
+        id: user.id,
+        username: user.username,
         full_name: fullName,
         bio: bio,
         phone: phone,
         avatar_url: avatarUrl
-      }).eq('id', user.id);
+      });
 
       if (error) throw error;
       

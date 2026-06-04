@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, PaperPlaneRight, Flag } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { useThemeColors } from '../../constants/theme';
 import { Avatar } from '../ui/Avatar';
 import { Skeleton } from '../ui/Skeleton';
+import { useComments } from '../../hooks/useComments';
+import { useAuthStore } from '../../stores/authStore';
+import { supabase } from '../../lib/supabase';
+import { formatDistanceToNow } from 'date-fns';
+import { useModalStore } from '../../stores/modalStore';
+import { Comment } from '../../types';
+import { useQueryClient } from '@tanstack/react-query';
 
 function CommentSkeleton() {
   return (
@@ -18,11 +25,6 @@ function CommentSkeleton() {
     </View>
   );
 }
-import { useComments } from '../../hooks/useComments';
-import { useAuthStore } from '../../stores/authStore';
-import { supabase } from '../../lib/supabase';
-import { formatDistanceToNow } from 'date-fns';
-import { useModalStore } from '../../stores/modalStore';
 
 interface CommentSheetProps {
   recipeId: string;
@@ -37,28 +39,72 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const { data: comments, isLoading } = useComments(recipeId);
 
-  const handleSubmit = async () => {
-    if (!content.trim() || !user?.id) return;
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const toastOpacity = useRef(new Animated.Value(0)).current;
 
+  const showToast = () => {
+    setToastVisible(true);
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 200, useNativeDriver: true }),
+      Animated.delay(1600),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start(() => setToastVisible(false));
+  };
+
+  const handleSubmit = async () => {
+    if (!content.trim() || !user?.id || isSubmitting) return;
+
+    const trimmed = content.trim();
+    setContent('');
     setIsSubmitting(true);
+
+    // Optimistic update
+    const optimisticComment: Comment = {
+      id: `optimistic-${Date.now()}`,
+      user_id: user.id,
+      recipe_id: recipeId,
+      content: trimmed,
+      is_flagged: false,
+      created_at: new Date().toISOString(),
+      profiles: {
+        username: user.username ?? null,
+        avatar_url: null,
+        is_verified: false,
+      },
+    };
+
+    queryClient.setQueryData<Comment[]>(['comments', recipeId], (old) =>
+      [optimisticComment, ...(old ?? [])]
+    );
+
+    showToast();
+
     try {
       const { error } = await supabase.from('comments').insert({
         recipe_id: recipeId,
         user_id: user.id,
-        content: content.trim(),
+        content: trimmed,
       });
 
       if (error) throw error;
-      setContent('');
     } catch (e: any) {
+      // Rollback optimistic update on failure
+      queryClient.setQueryData<Comment[]>(['comments', recipeId], (old) =>
+        (old ?? []).filter((c) => c.id !== optimisticComment.id)
+      );
+      setContent(trimmed);
       useModalStore.getState().showAlert({
         title: 'Error',
         message: e.message
       });
     } finally {
       setIsSubmitting(false);
+      // Refetch to replace optimistic entry with real server data
+      queryClient.invalidateQueries({ queryKey: ['comments', recipeId] });
     }
   };
 
@@ -169,6 +215,13 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
               <PaperPlaneRight size={20} color={content.trim() ? '#FFF' : colors.textMuted} weight="fill" />
             </TouchableOpacity>
           </View>
+
+          {/* Inline toast */}
+          {toastVisible && (
+            <Animated.View style={[styles.toast, { opacity: toastOpacity, backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
+              <Text style={[styles.toastText, { color: colors.textPrimary }]}>✓ Comment posted</Text>
+            </Animated.View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -274,5 +327,23 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  toast: {
+    position: 'absolute',
+    bottom: 90,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  },
+  toastText: {
+    fontFamily: 'DM-Sans-Medium',
+    fontSize: 14,
   },
 });

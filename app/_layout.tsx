@@ -6,6 +6,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
+import { useChatStore } from '../stores/chatStore';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
@@ -38,6 +39,7 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const { user, setUser, clearUser } = useAuthStore();
+  const setUserId = useChatStore((s) => s.setUserId);
 
   const [fontsLoaded, fontError] = useFonts({
     'Sora-Regular': Sora_400Regular,
@@ -64,8 +66,10 @@ export default function RootLayout() {
           username: session.user.user_metadata?.username,
           has_onboarded: session.user.user_metadata?.has_onboarded
         });
+        setUserId(session.user.id);
       } else {
         clearUser();
+        setUserId(null);
       }
     });
 
@@ -78,8 +82,10 @@ export default function RootLayout() {
           username: session.user.user_metadata?.username,
           has_onboarded: session.user.user_metadata?.has_onboarded
         });
+        setUserId(session.user.id);
       } else {
         clearUser();
+        setUserId(null);
       }
     });
 

@@ -140,7 +140,7 @@ export default function ChatScreen() {
           <View style={[styles.inputContainer, { backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
             <TextInput
               style={[styles.input, { color: colors.textPrimary }]}
-              placeholder="Message Chef AI..."
+              placeholder="Message ChowAI..."
               placeholderTextColor={colors.textMuted}
               value={inputText}
               onChangeText={setInputText}

@@ -41,10 +41,11 @@ export default function PreferencesScreen() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ 
+        .upsert({ 
+          id: user.id,
+          username: user.username,
           preferences: selected
-        })
-        .eq('id', user.id);
+        });
 
       if (error) throw error;
 

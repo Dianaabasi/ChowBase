@@ -20,16 +20,32 @@ export interface Conversation {
 }
 
 interface ChatState {
+  userId: string | null;
   conversations: Conversation[];
+  setUserId: (id: string | null) => void;
   createConversation: (title: string, sapaMode: boolean, initialPrompt?: string) => string;
   addMessage: (conversationId: string, role: 'user' | 'assistant', content: string) => void;
   deleteConversation: (conversationId: string) => void;
+  clearConversations: () => void;
 }
+
+// Storage key scoped by user ID to isolate conversation histories
+const makeStorageKey = (userId: string | null) =>
+  userId ? `chowbase-chat-${userId}` : 'chowbase-chat-guest';
 
 export const useChatStore = create<ChatState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
+      userId: null,
       conversations: [],
+
+      setUserId: (id) => {
+        const currentId = get().userId;
+        if (currentId !== id) {
+          // Switching users — clear in-memory conversations so we load from the new key
+          set({ userId: id, conversations: [] });
+        }
+      },
 
       createConversation: (title, sapaMode, initialPrompt) => {
         const id = uuidv4();
@@ -98,11 +114,18 @@ export const useChatStore = create<ChatState>()(
         set((state) => ({
           conversations: state.conversations.filter(conn => conn.id !== conversationId)
         }));
-      }
+      },
+
+      clearConversations: () => set({ conversations: [] }),
     }),
     {
       name: 'chowbase-chat-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      // Persist userId so we know which user's data we're holding
+      partialize: (state) => ({
+        userId: state.userId,
+        conversations: state.conversations,
+      }),
     }
   )
 );

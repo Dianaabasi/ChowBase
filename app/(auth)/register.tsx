@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { EnvelopeSimple, LockKey, Eye, EyeSlash, GoogleLogo, User, At, CheckSquare, Square } from 'phosphor-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import { makeRedirectUri } from 'expo-auth-session';
 import { useModalStore } from '../../stores/modalStore';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -72,11 +73,15 @@ export default function RegisterScreen() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    const redirectUrl = Linking.createURL('/(tabs)/feed');
+    // Force the custom scheme to bypass Expo Go dynamic IP whitelist issues
+    const redirectUrl = makeRedirectUri();
+    console.log("CRITICAL SUPABASE REDIRECT URL TO WHITELIST:", redirectUrl);
+    
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
+        skipBrowserRedirect: true, // MUST be true for React Native
       },
     });
     setLoading(false);
@@ -87,7 +92,21 @@ export default function RegisterScreen() {
         message: error.message
       });
     } else if (data?.url) {
-      await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+      console.log("SUPABASE GENERATED OAUTH URL:", data.url);
+      
+      // Show the URL to the user so they can whitelist it if it fails
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+      
+      if (res.type === 'success' && res.url) {
+        // Extract the tokens from the deep link URL hash
+        const urlObj = new URL(res.url.replace('#', '?'));
+        const access_token = urlObj.searchParams.get('access_token');
+        const refresh_token = urlObj.searchParams.get('refresh_token');
+        
+        if (access_token && refresh_token) {
+          await supabase.auth.setSession({ access_token, refresh_token });
+        }
+      }
     }
   };
 

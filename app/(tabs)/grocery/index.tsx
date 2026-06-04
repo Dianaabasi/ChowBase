@@ -120,7 +120,11 @@ export default function GroceryScreen() {
         }
       />
 
-      <View style={[styles.inputContainer, { backgroundColor: colors.bgPrimary, borderTopColor: colors.borderSubtle, paddingBottom: insets.bottom || 24 }]}>
+      <View style={[styles.inputContainer, { 
+        backgroundColor: colors.bgPrimary, 
+        borderTopColor: colors.borderSubtle, 
+        paddingBottom: (insets.bottom || 24) + (Platform.OS === 'ios' ? 90 : 70) 
+      }]}>
         <View style={[styles.inputWrapper, { backgroundColor: colors.bgSecondary, borderColor: colors.borderSubtle }]}>
           <TextInput
             style={[styles.input, { color: colors.textPrimary }]}

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Activi
 import { useThemeColors } from '../../constants/theme';
 import { Recipe, Ingredient, RecipeStep } from '../../types';
 import { Image } from 'expo-image';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
@@ -51,6 +51,12 @@ export function RecipeForm({ initialData, onSubmit, isSubmitting }: RecipeFormPr
   
   const [imageUri, setImageUri] = useState(initialData?.image_url || '');
   const [videoUri, setVideoUri] = useState(initialData?.video_url || '');
+  
+  const player = useVideoPlayer(videoUri || '', player => {
+    player.loop = true;
+    player.muted = true;
+    player.play();
+  });
   
   const [ingredients, setIngredients] = useState<Partial<Ingredient>[]>(initialData?.recipe_ingredients || []);
   const [steps, setSteps] = useState<Partial<RecipeStep>[]>(initialData?.recipe_steps || []);
@@ -222,7 +228,7 @@ export function RecipeForm({ initialData, onSubmit, isSubmitting }: RecipeFormPr
           {!imageUri && (
             <TouchableOpacity style={[styles.mediaBox, { borderColor: colors.borderSubtle }]} onPress={pickVideo}>
               {videoUri ? (
-                <Video source={{ uri: videoUri }} style={styles.mediaPreview} resizeMode={ResizeMode.COVER} isMuted />
+                <VideoView player={player} style={styles.mediaPreview} contentFit="cover" nativeControls={false} />
               ) : (
                 <>
                   <VideoCamera size={24} color={colors.textSecondary} />

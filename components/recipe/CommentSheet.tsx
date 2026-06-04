@@ -5,6 +5,19 @@ import { X, PaperPlaneRight, Flag } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { useThemeColors } from '../../constants/theme';
 import { Avatar } from '../ui/Avatar';
+import { Skeleton } from '../ui/Skeleton';
+
+function CommentSkeleton() {
+  return (
+    <View style={{ flexDirection: 'row', marginBottom: 16, alignItems: 'flex-start' }}>
+      <Skeleton width={36} height={36} circle style={{ marginRight: 12 }} />
+      <View style={{ flex: 1, marginTop: 4 }}>
+        <Skeleton width="40%" height={14} borderRadius={4} style={{ marginBottom: 8 }} />
+        <Skeleton width="90%" height={14} borderRadius={4} />
+      </View>
+    </View>
+  );
+}
 import { useComments } from '../../hooks/useComments';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../lib/supabase';
@@ -91,8 +104,11 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
           </View>
 
           {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <Text style={{ color: colors.textSecondary }}>Loading...</Text>
+            <View style={{ padding: 16 }}>
+              <CommentSkeleton />
+              <CommentSkeleton />
+              <CommentSkeleton />
+              <CommentSkeleton />
             </View>
           ) : (
             <FlatList

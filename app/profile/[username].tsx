@@ -13,8 +13,53 @@ import { format } from 'date-fns';
 import { useFollow } from '../../hooks/useFollow';
 import { useUserRecipes } from '../../hooks/useUserRecipes';
 import { RecipeCard } from '../../components/feed/RecipeCard';
+import { Skeleton } from '../../components/ui/Skeleton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
+
+function ProfileSkeleton() {
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <BlurHeader title="" />
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <Skeleton width={96} height={96} circle style={{ marginBottom: 16 }} />
+          <Skeleton width={150} height={24} borderRadius={8} style={{ marginBottom: 8 }} />
+          <Skeleton width={100} height={16} borderRadius={4} style={{ marginBottom: 24 }} />
+          
+          <View style={styles.statsRow}>
+            <View style={styles.statItem}>
+              <Skeleton width={40} height={24} borderRadius={4} style={{ marginBottom: 4 }} />
+              <Skeleton width={60} height={14} borderRadius={4} />
+            </View>
+            <View style={styles.statItem}>
+              <Skeleton width={40} height={24} borderRadius={4} style={{ marginBottom: 4 }} />
+              <Skeleton width={60} height={14} borderRadius={4} />
+            </View>
+            <View style={styles.statItem}>
+              <Skeleton width={60} height={24} borderRadius={4} style={{ marginBottom: 4 }} />
+              <Skeleton width={40} height={14} borderRadius={4} />
+            </View>
+          </View>
+        </View>
+        
+        <View style={styles.gridContainer}>
+          <Skeleton width={100} height={20} borderRadius={4} style={{ marginBottom: 16 }} />
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+            <Skeleton width={(width - 48) / 2} height={(width - 48) / 2 + 60} borderRadius={16} style={{ marginBottom: 16 }} />
+            <Skeleton width={(width - 48) / 2} height={(width - 48) / 2 + 60} borderRadius={16} style={{ marginBottom: 16 }} />
+            <Skeleton width={(width - 48) / 2} height={(width - 48) / 2 + 60} borderRadius={16} style={{ marginBottom: 16 }} />
+            <Skeleton width={(width - 48) / 2} height={(width - 48) / 2 + 60} borderRadius={16} style={{ marginBottom: 16 }} />
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 export default function ProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>();
@@ -29,7 +74,7 @@ export default function ProfileScreen() {
   const { isFollowing, toggleFollow, followersCount, followingCount, isToggling } = useFollow(profile?.id);
 
   if (profileLoading) {
-    return <View style={[styles.container, { backgroundColor: colors.bgPrimary }]} />;
+    return <ProfileSkeleton />;
   }
 
   if (!profile) {
@@ -108,7 +153,10 @@ export default function ProfileScreen() {
           <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Recipes ({recipes.length})</Text>
           
           {recipesLoading ? (
-            <Text style={[styles.emptyText, { color: colors.textMuted }]}>Loading recipes...</Text>
+            <View style={{ gap: 16 }}>
+              <Skeleton width="100%" height={250} borderRadius={16} />
+              <Skeleton width="100%" height={250} borderRadius={16} />
+            </View>
           ) : recipes.length > 0 ? (
             recipes.map((recipe) => (
               <RecipeCard key={recipe.id} recipe={recipe} />

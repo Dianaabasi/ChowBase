@@ -9,6 +9,40 @@ import { RecipeForm } from '../../../components/recipe/RecipeForm';
 import { supabase } from '../../../lib/supabase';
 import { useAuthStore } from '../../../stores/authStore';
 import { useModalStore } from '../../../stores/modalStore';
+import { Skeleton } from '../../../components/ui/Skeleton';
+
+function EditRecipeSkeleton() {
+  const colors = useThemeColors();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bgPrimary, padding: 16 }}>
+      {/* Header */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: 40 }}>
+        <Skeleton width={32} height={32} borderRadius={16} />
+        <Skeleton width={120} height={20} borderRadius={4} />
+        <Skeleton width={80} height={36} borderRadius={18} />
+      </View>
+      
+      {/* Media Pickers */}
+      <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
+        <Skeleton width="48%" height={120} borderRadius={12} />
+        <Skeleton width="48%" height={120} borderRadius={12} />
+      </View>
+      
+      {/* Inputs */}
+      <Skeleton width="100%" height={56} borderRadius={12} style={{ marginBottom: 16 }} />
+      <Skeleton width="100%" height={120} borderRadius={12} style={{ marginBottom: 16 }} />
+      
+      <View style={{ flexDirection: 'row', gap: 16, marginBottom: 16 }}>
+        <Skeleton width="48%" height={56} borderRadius={12} />
+        <Skeleton width="48%" height={56} borderRadius={12} />
+      </View>
+      <View style={{ flexDirection: 'row', gap: 16, marginBottom: 16 }}>
+        <Skeleton width="48%" height={56} borderRadius={12} />
+        <Skeleton width="48%" height={56} borderRadius={12} />
+      </View>
+    </View>
+  );
+}
 import { Recipe } from '../../../types';
 
 export default function EditRecipeScreen() {
@@ -112,11 +146,7 @@ export default function EditRecipeScreen() {
   };
 
   if (isLoading) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.brand.primary} />
-      </View>
-    );
+    return <EditRecipeSkeleton />;
   }
 
   if (!recipe) {

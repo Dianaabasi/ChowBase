@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
-import { Video, ResizeMode, Audio } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { setAudioModeAsync } from 'expo-audio';
 import { useRouter } from 'expo-router';
 import { Heart, ChatCircle, SpeakerHigh, SpeakerX } from 'phosphor-react-native';
 import { GlassCard } from '../ui/GlassCard';
@@ -21,28 +22,44 @@ const { width } = Dimensions.get('window');
 export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
   const router = useRouter();
   const colors = useThemeColors();
-  const videoRef = useRef<Video>(null);
   const [isMuted, setIsMuted] = useState(true);
   const { isLiked, toggleLike } = useLike(recipe.id);
   const [showComments, setShowComments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  
+  const player = useVideoPlayer(recipe.video_url || '', player => {
+    player.loop = true;
+    player.muted = isMuted;
+    if (isVisible) {
+      player.play();
+      setIsPlaying(true);
+    }
+  });
 
   useEffect(() => {
-    // Configure audio to play in silent mode on iOS
-    Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
+    // Configure audio to play in silent mode
+    setAudioModeAsync({
+      playsInSilentMode: true,
     });
   }, []);
 
   useEffect(() => {
-    if (isVisible) {
-      videoRef.current?.playAsync();
-      setIsPlaying(true);
-    } else {
-      videoRef.current?.pauseAsync();
-      setIsPlaying(false);
+    if (player) {
+      player.muted = isMuted;
     }
-  }, [isVisible]);
+  }, [isMuted, player]);
+
+  useEffect(() => {
+    if (player) {
+      if (isVisible) {
+        player.play();
+        setIsPlaying(true);
+      } else {
+        player.pause();
+        setIsPlaying(false);
+      }
+    }
+  }, [isVisible, player]);
 
   const handleCookMode = () => {
     router.push(`/recipe/${recipe.id}`);
@@ -62,17 +79,11 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
     <View style={styles.container}>
       <GlassCard style={styles.card}>
         <TouchableOpacity activeOpacity={0.9} onPress={handleCookMode} style={styles.videoContainer}>
-          <Video
-            ref={videoRef}
-            source={{ uri: recipe.video_url || '' }}
+          <VideoView
+            player={player}
             style={styles.video}
-            resizeMode={ResizeMode.COVER}
-            isLooping
-            isMuted={isMuted}
-            shouldPlay={isVisible}
-            posterSource={{ uri: recipe.image_url }}
-            posterStyle={{ resizeMode: 'cover' }}
-            usePoster
+            contentFit="cover"
+            nativeControls={false}
           />
           
           <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>

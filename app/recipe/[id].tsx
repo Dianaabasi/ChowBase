@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import { useKeepAwake } from 'expo-keep-awake';
@@ -21,8 +21,65 @@ import { useAuthStore } from '../../stores/authStore';
 import { useLike } from '../../hooks/useLike';
 import { useGroceryStore } from '../../stores/groceryStore';
 import { CookModeView } from '../../components/recipe/CookModeView';
+import { Skeleton } from '../../components/ui/Skeleton';
 
 const { width } = Dimensions.get('window');
+
+function RecipeSkeleton() {
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
+      <BlurHeader transparent hideBack />
+      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 100 }} bounces={false}>
+        <Skeleton width="100%" height={width} borderRadius={0} />
+        <View style={styles.content}>
+          <Skeleton width="70%" height={28} borderRadius={8} style={{ marginBottom: 16 }} />
+          <View style={[styles.authorRow, { marginBottom: 24 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Skeleton width={36} height={36} circle />
+              <Skeleton width={120} height={16} borderRadius={4} />
+            </View>
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <Skeleton width={24} height={24} circle />
+              <Skeleton width={24} height={24} circle />
+              <Skeleton width={24} height={24} circle />
+            </View>
+          </View>
+          <View style={{ gap: 8, marginBottom: 32 }}>
+            <Skeleton width="100%" height={14} borderRadius={4} />
+            <Skeleton width="100%" height={14} borderRadius={4} />
+            <Skeleton width="80%" height={14} borderRadius={4} />
+          </View>
+          <View style={{ flexDirection: 'row', gap: 16, marginBottom: 24 }}>
+            <Skeleton width={100} height={32} borderRadius={16} />
+            <Skeleton width={100} height={32} borderRadius={16} />
+          </View>
+          <View style={{ gap: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Skeleton width={12} height={12} circle />
+              <Skeleton width="40%" height={16} borderRadius={4} />
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.borderSubtle }} />
+              <Skeleton width={60} height={16} borderRadius={4} />
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Skeleton width={12} height={12} circle />
+              <Skeleton width="50%" height={16} borderRadius={4} />
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.borderSubtle }} />
+              <Skeleton width={40} height={16} borderRadius={4} />
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Skeleton width={12} height={12} circle />
+              <Skeleton width="30%" height={16} borderRadius={4} />
+              <View style={{ flex: 1, height: 1, backgroundColor: colors.borderSubtle }} />
+              <Skeleton width={80} height={16} borderRadius={4} />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 function StepTimer({ timerSecs }: { timerSecs: number }) {
   const [timeLeft, setTimeLeft] = useState(timerSecs);
@@ -71,9 +128,9 @@ export default function RecipeDetailScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const insets = useSafeAreaInsets();
-  const videoRef = useRef<Video>(null);
+  const videoViewRef = useRef<VideoView>(null);
   
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [isCookMode, setIsCookMode] = useState(false);
   const [activeTab, setActiveTab] = useState<'ingredients' | 'instructions'>('ingredients');
@@ -100,12 +157,20 @@ export default function RecipeDetailScreen() {
     enabled: !!id,
   });
 
+  const player = useVideoPlayer(recipe?.video_url || '', player => {
+    player.loop = true;
+    player.muted = isMuted;
+    player.play();
+  });
+
+  React.useEffect(() => {
+    if (player) {
+      player.muted = isMuted;
+    }
+  }, [isMuted, player]);
+
   if (isLoading) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.bgPrimary, justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.brand.primary} />
-      </View>
-    );
+    return <RecipeSkeleton />;
   }
 
   if (!recipe) {
@@ -140,15 +205,12 @@ export default function RecipeDetailScreen() {
         <View style={styles.mediaContainer}>
           {recipe.video_url ? (
             <>
-              <Video
-                ref={videoRef}
-                source={{ uri: recipe.video_url }}
+              <VideoView
+                ref={videoViewRef}
+                player={player}
                 style={styles.media}
-                resizeMode={ResizeMode.COVER}
-                shouldPlay
-                isLooping
-                isMuted={isMuted}
-                useNativeControls={false}
+                contentFit="cover"
+                nativeControls={false}
               />
               <View style={styles.videoControls}>
                 <TouchableOpacity style={styles.videoBtn} onPress={() => setIsMuted(!isMuted)}>
@@ -158,7 +220,7 @@ export default function RecipeDetailScreen() {
                     <SpeakerHigh size={20} color="#FFF" weight="fill" />
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.videoBtn} onPress={() => videoRef.current?.presentFullscreenPlayer()}>
+                <TouchableOpacity style={styles.videoBtn} onPress={() => videoViewRef.current?.enterFullscreen()}>
                   <CornersOut size={20} color="#FFF" weight="fill" />
                 </TouchableOpacity>
               </View>

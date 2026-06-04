@@ -11,8 +11,25 @@ import { DotsThree, Plus, PencilSimple, Trash } from 'phosphor-react-native';
 import { useAuthStore } from '../../../stores/authStore';
 import { useModalStore } from '../../../stores/modalStore';
 import { supabase } from '../../../lib/supabase';
+import { Skeleton } from '../../../components/ui/Skeleton';
 
 const { width } = Dimensions.get('window');
+const GRID_ITEM_WIDTH = (width - 48) / 2;
+
+function VaultSkeleton() {
+  const colors = useThemeColors();
+  
+  return (
+    <View style={{ width: GRID_ITEM_WIDTH, borderRadius: 16, overflow: 'hidden', marginBottom: 16 }}>
+      <Skeleton width="100%" height={GRID_ITEM_WIDTH} borderRadius={0} />
+      <View style={{ padding: 12, backgroundColor: colors.bgSecondary }}>
+        <Skeleton width="90%" height={14} borderRadius={4} style={{ marginBottom: 6 }} />
+        <Skeleton width="60%" height={14} borderRadius={4} style={{ marginBottom: 12 }} />
+        <Skeleton width="50%" height={12} borderRadius={4} />
+      </View>
+    </View>
+  );
+}
 
 export default function VaultScreen() {
   const [activeCategory, setActiveCategory] = useState<string | undefined>();
@@ -140,13 +157,22 @@ export default function VaultScreen() {
         }}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
-          !isLoading ? (
+          isLoading ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 16 }}>
+              <VaultSkeleton />
+              <VaultSkeleton />
+              <VaultSkeleton />
+              <VaultSkeleton />
+              <VaultSkeleton />
+              <VaultSkeleton />
+            </View>
+          ) : (
             <View style={styles.emptyContainer}>
               <Text style={{ color: colors.textSecondary }}>
                 {sapaMode ? 'No budget-friendly recipes found for this category.' : 'No recipes found.'}
               </Text>
             </View>
-          ) : null
+          )
         }
       />
 

@@ -13,6 +13,52 @@ import { useRouter } from 'expo-router';
 import { CategoryPill } from '../../../components/ui/CategoryPill';
 import { useAuthStore } from '../../../stores/authStore';
 import { supabase } from '../../../lib/supabase';
+import { Skeleton } from '../../../components/ui/Skeleton';
+import { Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+function FeedSkeleton() {
+  const colors = useThemeColors();
+  
+  return (
+    <View style={{ marginBottom: 24, paddingHorizontal: 16 }}>
+      <View style={{ 
+        width: '100%', 
+        backgroundColor: colors.bgSecondary, 
+        borderRadius: 24, 
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.borderSubtle
+      }}>
+        {/* Video Placeholder */}
+        <Skeleton width="100%" height={width * 1.2} borderRadius={0} />
+        
+        <View style={{ padding: 16 }}>
+          {/* Header Row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Skeleton width={32} height={32} circle />
+              <View style={{ marginLeft: 8 }}>
+                <Skeleton width={100} height={14} borderRadius={4} />
+              </View>
+            </View>
+            <Skeleton width={24} height={24} borderRadius={12} />
+          </View>
+          
+          {/* Title */}
+          <Skeleton width="80%" height={24} borderRadius={6} style={{ marginBottom: 16 }} />
+          
+          {/* Footer Row */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Skeleton width="60%" height={48} borderRadius={24} />
+            <Skeleton width={40} height={40} circle />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
 
 export default function FeedScreen() {
   const { user } = useAuthStore();
@@ -120,11 +166,16 @@ export default function FeedScreen() {
         }}
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
-          !isLoading ? (
+          isLoading ? (
+            <>
+              <FeedSkeleton />
+              <FeedSkeleton />
+            </>
+          ) : (
             <View style={styles.emptyContainer}>
               <Text style={{ color: colors.textSecondary }}>No recipes found.</Text>
             </View>
-          ) : null
+          )
         }
       />
     </View>

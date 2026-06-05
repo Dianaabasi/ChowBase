@@ -22,17 +22,18 @@ export default function SettingsScreen() {
   const { user, clearUser } = useAuthStore();
   const { data: profile } = useProfile(user?.username || '');
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     useModalStore.getState().showAlert({
       title: 'Log Out',
       message: 'Are you sure you want to log out?',
       confirmText: 'Log Out',
       showCancel: true,
       isDestructive: true,
-      onConfirm: async () => {
-        await supabase.auth.signOut();
+      onConfirm: () => {
+        // Clear state and navigate instantly — signOut fires in background
         clearUser();
         router.replace('/(auth)/welcome');
+        supabase.auth.signOut();
       }
     });
   };

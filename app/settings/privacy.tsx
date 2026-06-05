@@ -74,13 +74,12 @@ export default function PrivacySecurityScreen() {
       confirmText: 'Delete Forever',
       isDestructive: true,
       showCancel: true,
-      onConfirm: async () => {
-        // Due to Supabase edge function requirements, account deletion usually happens via an edge function.
-        // For now, we will sign them out and show a message.
-        await supabase.auth.signOut();
+      onConfirm: () => {
+        // Navigate instantly, sign out in background
         clearUser();
-        useModalStore.getState().showAlert({ title: 'Account Deleted', message: 'Your account has been queued for deletion.' });
         router.replace('/(auth)/welcome');
+        supabase.auth.signOut();
+        useModalStore.getState().showAlert({ title: 'Account Deleted', message: 'Your account has been queued for deletion.' });
       }
     });
   };

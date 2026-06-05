@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuthStore } from '../stores/authStore';
 import { supabase } from '../lib/supabase';
 import { useChatStore } from '../stores/chatStore';
+import { useNotificationStore } from '../stores/notificationStore';
+import { useNotificationListener } from '../hooks/useNotificationListener';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
@@ -39,8 +41,12 @@ export default function RootLayout() {
   const segments = useSegments();
   const router = useRouter();
   const { user, setUser, clearUser } = useAuthStore();
-  const setUserId = useChatStore((s) => s.setUserId);
+  const setChatUserId = useChatStore((s) => s.setUserId);
+  const setNotificationUserId = useNotificationStore((s) => s.setUserId);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
+
+  // Mount the global notification listener
+  useNotificationListener();
 
   const [fontsLoaded, fontError] = useFonts({
     'Sora-Regular': Sora_400Regular,
@@ -67,10 +73,12 @@ export default function RootLayout() {
           username: session.user.user_metadata?.username,
           has_onboarded: session.user.user_metadata?.has_onboarded
         });
-        setUserId(session.user.id);
+        setChatUserId(session.user.id);
+        setNotificationUserId(session.user.id);
       } else {
         clearUser();
-        setUserId(null);
+        setChatUserId(null);
+        setNotificationUserId(null);
       }
       setIsSessionLoading(false);
     });
@@ -84,10 +92,17 @@ export default function RootLayout() {
           username: session.user.user_metadata?.username,
           has_onboarded: session.user.user_metadata?.has_onboarded
         });
-        setUserId(session.user.id);
+        setChatUserId(session.user.id);
+        setNotificationUserId(session.user.id);
       } else {
-        clearUser();
-        setUserId(null);
+        // Only clear if not already cleared (instant-logout already handled it)
+        const currentUser = useAuthStore.getState().user;
+        if (currentUser) {
+          clearUser();
+        }
+        // setUserId(null) is safe due to the empty-conversations guard in chatStore
+        setChatUserId(null);
+        setNotificationUserId(null);
       }
     });
 

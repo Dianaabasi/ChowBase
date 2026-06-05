@@ -5,7 +5,7 @@ import { Recipe, Ingredient, RecipeStep } from '../../types';
 import { Image } from 'expo-image';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../../lib/supabase';
 import { ImageSquare, VideoCamera, Trash, Plus, CheckCircle, CaretLeft, CaretDown } from 'phosphor-react-native';
@@ -366,31 +366,43 @@ export function RecipeForm({ initialData, onSubmit, isSubmitting }: RecipeFormPr
         </TouchableOpacity>
       </View>
       {ingredients.map((ing, idx) => (
-        <View key={idx} style={[styles.dynamicRow, { backgroundColor: colors.bgSecondary }]}>
+        <View key={idx} style={[styles.dynamicRowCol, { backgroundColor: colors.bgSecondary }]}>
+          <View style={styles.stepHeader}>
+            <Text style={[styles.stepLabel, { color: colors.textPrimary }]}>Ingredient {idx + 1}</Text>
+            <TouchableOpacity onPress={() => setIngredients(ingredients.filter((_, i) => i !== idx))}>
+              <Trash size={20} color={colors.error} />
+            </TouchableOpacity>
+          </View>
           <TextInput
-            style={[styles.input, { flex: 2, backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
+            style={[styles.input, { backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
             value={ing.name}
             onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].name = v; setIngredients(newIngs); }}
             placeholder="Name (e.g. Rice)"
             placeholderTextColor={colors.textMuted}
           />
+          <View style={styles.row}>
+            <TextInput
+              style={[styles.input, styles.flex1, { backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
+              value={ing.quantity?.toString() || ''}
+              onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].quantity = v; setIngredients(newIngs); }}
+              placeholder="Qty (e.g. 2)"
+              placeholderTextColor={colors.textMuted}
+            />
+            <TextInput
+              style={[styles.input, styles.flex1, { backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
+              value={ing.unit || ''}
+              onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].unit = v; setIngredients(newIngs); }}
+              placeholder="Unit (e.g. cups)"
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
           <TextInput
-            style={[styles.input, { flex: 1, backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
-            value={ing.quantity?.toString() || ''}
-            onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].quantity = v; setIngredients(newIngs); }}
-            placeholder="Qty"
+            style={[styles.input, { backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
+            value={ing.market_section || ''}
+            onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].market_section = v; setIngredients(newIngs); }}
+            placeholder="Market Section (e.g. Produce, Meat) Optional"
             placeholderTextColor={colors.textMuted}
           />
-          <TextInput
-            style={[styles.input, { flex: 1, backgroundColor: colors.bgPrimary, color: colors.textPrimary, borderColor: colors.borderSubtle }]}
-            value={ing.unit || ''}
-            onChangeText={(v) => { const newIngs = [...ingredients]; newIngs[idx].unit = v; setIngredients(newIngs); }}
-            placeholder="Unit"
-            placeholderTextColor={colors.textMuted}
-          />
-          <TouchableOpacity onPress={() => setIngredients(ingredients.filter((_, i) => i !== idx))} style={styles.trashBtn}>
-            <Trash size={20} color={colors.error} />
-          </TouchableOpacity>
         </View>
       ))}
 

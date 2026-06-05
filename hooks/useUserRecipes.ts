@@ -12,7 +12,9 @@ export function useUserRecipes(userId?: string) {
         .from('recipes')
         .select(`
           *,
-          profiles!recipes_author_id_fkey(username, avatar_url, is_verified)
+          profiles!recipes_author_id_fkey(username, avatar_url, is_verified),
+          likes(count),
+          comments(count)
         `)
         .eq('author_id', userId)
         .eq('status', 'published')

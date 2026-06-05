@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import { useFollow } from '../../hooks/useFollow';
 import { useUserRecipes } from '../../hooks/useUserRecipes';
 import { RecipeCard } from '../../components/feed/RecipeCard';
+import { VideoCard } from '../../components/feed/VideoCard';
+import { CarouselCard } from '../../components/feed/CarouselCard';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -158,9 +160,15 @@ export default function ProfileScreen() {
               <Skeleton width="100%" height={250} borderRadius={16} />
             </View>
           ) : recipes.length > 0 ? (
-            recipes.map((recipe) => (
-              <RecipeCard key={recipe.id} recipe={recipe} />
-            ))
+            recipes.map((recipe) => {
+              if (recipe.card_type === 'video' && recipe.video_url) {
+                return <VideoCard key={recipe.id} recipe={recipe} isVisible={true} />;
+              } else if (recipe.card_type === 'carousel' && recipe.recipe_steps?.length && recipe.recipe_steps.length > 0) {
+                return <CarouselCard key={recipe.id} recipe={recipe} />;
+              } else {
+                return <RecipeCard key={recipe.id} recipe={recipe} />;
+              }
+            })
           ) : (
             <Text style={[styles.emptyText, { color: colors.textMuted }]}>
               {isOwnProfile ? "You haven't published any recipes yet." : "This chef hasn't published any recipes yet."}

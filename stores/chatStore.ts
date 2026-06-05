@@ -51,10 +51,12 @@ export const useChatStore = create<ChatState>()((set, get) => ({
 
   setUserId: async (id) => {
     const currentId = get().userId;
+    const currentConversations = get().conversations;
 
-    if (currentId && currentId !== id) {
-      // Save the current user's conversations before switching
-      await saveConversations(currentId, get().conversations);
+    // If switching away from a user, save their conversations first
+    // but ONLY if there's actually data to save (guard against double-call wiping)
+    if (currentId && currentId !== id && currentConversations.length > 0) {
+      await saveConversations(currentId, currentConversations);
     }
 
     if (id) {

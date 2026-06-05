@@ -298,8 +298,8 @@ export default function RecipeDetailScreen() {
           <View style={styles.tabContent}>
             {activeTab === 'ingredients' ? (
               <View style={styles.ingredientsContainer}>
-                {recipe.recipe_ingredients?.map((ing: any) => (
-                  <View key={ing.id} style={styles.ingredientRow}>
+                {recipe.recipe_ingredients?.map((ing: any, idx: number) => (
+                  <View key={ing.id || idx} style={styles.ingredientRow}>
                     <View style={[styles.ingredientDot, { backgroundColor: colors.brand.primary }]} />
                     <Text style={[styles.ingredientName, { color: colors.textPrimary }]}>{ing.name}</Text>
                     <View style={[styles.ingredientLine, { borderBottomColor: colors.borderSubtle }]} />
@@ -312,7 +312,15 @@ export default function RecipeDetailScreen() {
                 <TouchableOpacity 
                   style={[styles.groceryBtn, { backgroundColor: colors.brand.primary }]}
                   onPress={() => {
-                    recipe.recipe_ingredients?.forEach((ing: any) => {
+                    if (!recipe.recipe_ingredients || recipe.recipe_ingredients.length === 0) {
+                      useModalStore.getState().showAlert({
+                        title: 'No Ingredients',
+                        message: 'There are no ingredients to add to your list.',
+                        confirmText: 'Okay'
+                      });
+                      return;
+                    }
+                    recipe.recipe_ingredients.forEach((ing: any) => {
                       useGroceryStore.getState().addItem({
                         name: ing.name,
                         amount: parseInt(ing.quantity) || 1,

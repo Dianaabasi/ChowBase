@@ -7,8 +7,11 @@ import { useThemeColors } from '../../constants/theme';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { GreenButton } from '../../components/ui/GreenButton';
 import { useModalStore } from '../../stores/modalStore';
+import { useChatStore } from '../../stores/chatStore';
+import { useNotificationStore } from '../../stores/notificationStore';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PrivacySecurityScreen() {
   const insets = useSafeAreaInsets();
@@ -74,7 +77,15 @@ export default function PrivacySecurityScreen() {
       confirmText: 'Delete Forever',
       isDestructive: true,
       showCancel: true,
-      onConfirm: () => {
+      onConfirm: async () => {
+        // Save chat history before clearing anything
+        const chatState = useChatStore.getState();
+        if (chatState.userId && chatState.conversations.length > 0) {
+          await AsyncStorage.setItem(
+            `chowbase-chat-${chatState.userId}`,
+            JSON.stringify(chatState.conversations)
+          );
+        }
         // Navigate instantly, sign out in background
         clearUser();
         router.replace('/(auth)/welcome');

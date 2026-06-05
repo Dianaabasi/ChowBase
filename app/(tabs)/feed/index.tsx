@@ -12,6 +12,7 @@ import { Bell, Gear, MagnifyingGlass } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
 import { CategoryPill } from '../../../components/ui/CategoryPill';
 import { useAuthStore } from '../../../stores/authStore';
+import { useNotificationStore } from '../../../stores/notificationStore';
 import { supabase } from '../../../lib/supabase';
 import { Skeleton } from '../../../components/ui/Skeleton';
 import { Dimensions } from 'react-native';
@@ -67,6 +68,7 @@ export default function FeedScreen() {
   const [feedFilter, setFeedFilter] = useState<'all' | 'following'>('all');
   
   const { data, isLoading, refetch, fetchNextPage, hasNextPage } = useRecipes(activeCategory, feedFilter, user?.id);
+  const hasUnreadNotifications = useNotificationStore(state => state.hasUnread);
 
   const [categories, setCategories] = useState<string[]>(['All', 'Nigerian Soups', 'Rice Dishes', 'Snacks & Pastries', 'Vegan / Plant-Based', 'Meat Lovers', 'Healthy & Diet']);
 
@@ -104,7 +106,12 @@ export default function FeedScreen() {
         />
         <View style={[styles.headerRight, { position: 'absolute', right: 16, top: insets.top || 16, height: 100 }]}>
           <TouchableOpacity onPress={() => router.push('/notifications')} style={styles.iconButton}>
-            <Bell size={24} color={colors.textPrimary} />
+            <View>
+              <Bell size={24} color={colors.textPrimary} />
+              {hasUnreadNotifications && (
+                <View style={[styles.notificationDot, { backgroundColor: colors.brand.primary }]} />
+              )}
+            </View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push('/settings')} style={styles.iconButton}>
             <Gear size={24} color={colors.textPrimary} />
@@ -202,6 +209,16 @@ const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: -2,
+    right: 2,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#FFF',
   },
   emptyContainer: {
     padding: 40,

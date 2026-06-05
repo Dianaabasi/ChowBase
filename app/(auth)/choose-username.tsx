@@ -61,7 +61,7 @@ export default function ChooseUsernameScreen() {
 
       setUser({ ...user, username: username.toLowerCase() });
       
-      router.replace('/(auth)/preferences');
+      // Navigation is handled by the _layout.tsx guard based on user state
 
     } catch (e: any) {
       useModalStore.getState().showAlert({

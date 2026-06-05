@@ -54,7 +54,7 @@ export default function PreferencesScreen() {
       });
 
       setUser({ ...user, has_onboarded: true });
-      router.replace('/(tabs)/feed');
+      // Navigation is handled by the _layout.tsx guard based on user state
     } catch (e: any) {
       useModalStore.getState().showAlert({
         title: 'Error',

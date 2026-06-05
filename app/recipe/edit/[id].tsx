@@ -99,27 +99,45 @@ export default function EditRecipeScreen() {
       
       // Update ingredients by replacing them
       if (recipe_ingredients) {
-        await supabase.from('ingredients').delete().eq('recipe_id', id);
+        const { error: delError } = await supabase.from('ingredients').delete().eq('recipe_id', id);
+        if (delError) console.error('Delete ingredients error:', delError);
+        
         if (recipe_ingredients.length > 0) {
-          await supabase.from('ingredients').insert(
-            recipe_ingredients.map((ing) => ({
-              ...ing,
-              recipe_id: id
-            }))
+          const { error: insertError } = await supabase.from('ingredients').insert(
+            recipe_ingredients.map((ing) => {
+              const { id: _ingId, created_at: _createdAt, ...rest } = ing as any; // Remove old id and created_at
+              return {
+                ...rest,
+                recipe_id: id
+              };
+            })
           );
+          if (insertError) {
+            console.error('Insert ingredients error:', insertError);
+            throw insertError;
+          }
         }
       }
 
       // Update steps by replacing them
       if (recipe_steps) {
-        await supabase.from('recipe_steps').delete().eq('recipe_id', id);
+        const { error: delStepError } = await supabase.from('recipe_steps').delete().eq('recipe_id', id);
+        if (delStepError) console.error('Delete steps error:', delStepError);
+        
         if (recipe_steps.length > 0) {
-          await supabase.from('recipe_steps').insert(
-            recipe_steps.map((step) => ({
-              ...step,
-              recipe_id: id
-            }))
+          const { error: insertStepError } = await supabase.from('recipe_steps').insert(
+            recipe_steps.map((step) => {
+              const { id: _stepId, created_at: _createdAt, ...rest } = step as any;
+              return {
+                ...rest,
+                recipe_id: id
+              };
+            })
           );
+          if (insertStepError) {
+            console.error('Insert steps error:', insertStepError);
+            throw insertStepError;
+          }
         }
       }
 

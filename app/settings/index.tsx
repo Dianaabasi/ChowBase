@@ -10,9 +10,12 @@ import { useAuthStore } from '../../stores/authStore';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { Avatar } from '../../components/ui/Avatar';
 import { useModalStore } from '../../stores/modalStore';
+import { useChatStore } from '../../stores/chatStore';
+import { useNotificationStore } from '../../stores/notificationStore';
 import { useProfile } from '../../hooks/useProfile';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.0.2";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -29,8 +32,16 @@ export default function SettingsScreen() {
       confirmText: 'Log Out',
       showCancel: true,
       isDestructive: true,
-      onConfirm: () => {
-        // Clear state and navigate instantly — signOut fires in background
+      onConfirm: async () => {
+        // Explicitly save chat history before clearing anything
+        const chatState = useChatStore.getState();
+        if (chatState.userId && chatState.conversations.length > 0) {
+          await AsyncStorage.setItem(
+            `chowbase-chat-${chatState.userId}`,
+            JSON.stringify(chatState.conversations)
+          );
+        }
+        // Now clear state and navigate
         clearUser();
         router.replace('/(auth)/welcome');
         supabase.auth.signOut();

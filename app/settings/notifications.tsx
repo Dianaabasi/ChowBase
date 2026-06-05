@@ -1,30 +1,24 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { CaretLeft } from 'phosphor-react-native';
 import { useThemeColors } from '../../constants/theme';
 import { GlassCard } from '../../components/ui/GlassCard';
+import { useNotificationStore, NotificationSettings } from '../../stores/notificationStore';
 
 export default function NotificationsSettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const colors = useThemeColors();
+  
+  const { settings, updateSettings } = useNotificationStore();
 
-  const [settings, setSettings] = useState({
-    pushAll: true,
-    newFollowers: true,
-    recipeLikes: true,
-    recipeComments: true,
-    emailDigest: false,
-    promotions: false,
-  });
-
-  const toggleSetting = (key: keyof typeof settings) => {
-    setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleSetting = (key: keyof NotificationSettings) => {
+    updateSettings({ [key]: !settings[key] });
   };
 
-  const SettingRow = ({ title, settingKey, isLast = false }: { title: string, settingKey: keyof typeof settings, isLast?: boolean }) => (
+  const SettingRow = ({ title, settingKey, isLast = false }: { title: string, settingKey: keyof NotificationSettings, isLast?: boolean }) => (
     <View style={[styles.row, !isLast && { borderBottomColor: colors.borderSubtle, borderBottomWidth: StyleSheet.hairlineWidth }]}>
       <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{title}</Text>
       <Switch 
@@ -49,17 +43,25 @@ export default function NotificationsSettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Push Notifications</Text>
+        <GlassCard style={[styles.card, { marginBottom: 24 }]}>
+          <View style={[styles.row, { borderBottomColor: colors.borderSubtle, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+            <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>Allow Push Notifications</Text>
+            <Switch 
+              value={false} 
+              onValueChange={() => {}}
+              trackColor={{ false: colors.bgSecondary, true: colors.brand.primary }}
+              thumbColor="#FFF"
+            />
+          </View>
+          
+        </GlassCard>
+
+        <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>In-App Notifications</Text>
         <GlassCard style={styles.card}>
-          <SettingRow title="Allow Push Notifications" settingKey="pushAll" />
+          <SettingRow title="Allow Notifications" settingKey="pushAll" />
           <SettingRow title="New Followers" settingKey="newFollowers" />
           <SettingRow title="Recipe Likes" settingKey="recipeLikes" />
           <SettingRow title="Recipe Comments" settingKey="recipeComments" isLast />
-        </GlassCard>
-
-        <Text style={[styles.sectionTitle, { color: colors.textPrimary, marginTop: 24 }]}>Email Notifications</Text>
-        <GlassCard style={styles.card}>
-          <SettingRow title="Weekly Digest" settingKey="emailDigest" />
-          <SettingRow title="Promotions & Offers" settingKey="promotions" isLast />
         </GlassCard>
 
       </ScrollView>

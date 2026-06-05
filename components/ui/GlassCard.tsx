@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, ViewStyle, useColorScheme } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useThemeColors } from '../../constants/theme';
+import { useThemeStore } from '../../stores/themeStore';
+import { useColorScheme } from 'react-native';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -11,12 +13,33 @@ interface GlassCardProps {
 
 export function GlassCard({ children, style, intensity = 60 }: GlassCardProps) {
   const colors = useThemeColors();
-  const scheme = useColorScheme();
+  const systemScheme = useColorScheme();
+  const { themeMode } = useThemeStore();
+  const isDark = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
 
+  // Light mode: use a clean white card (BlurView renders as ugly grey on Android light mode)
+  if (!isDark) {
+    return (
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.bgPrimary,
+            borderColor: colors.borderSubtle,
+          },
+          style,
+        ]}
+      >
+        {children}
+      </View>
+    );
+  }
+
+  // Dark mode: use the glass blur effect
   return (
     <BlurView
       intensity={intensity}
-      tint={scheme === 'dark' ? 'dark' : 'light'}
+      tint="dark"
       style={[
         styles.container,
         {

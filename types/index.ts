@@ -54,7 +54,8 @@ export interface Recipe {
     avatar_url: string | null;
     is_verified: boolean;
   };
-  likes?: { count: number }[];
+  likes?: { count: number | string }[];
+  comments?: { count: number | string }[];
   recipe_steps?: RecipeStep[];
   recipe_ingredients?: Ingredient[];
 }

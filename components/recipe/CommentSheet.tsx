@@ -13,6 +13,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { useModalStore } from '../../stores/modalStore';
 import { Comment } from '../../types';
 import { useQueryClient } from '@tanstack/react-query';
+import { LinkedText } from '../ui/LinkedText';
 
 function CommentSkeleton() {
   return (
@@ -177,9 +178,11 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
                         {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                       </Text>
                     </View>
-                    <Text style={[styles.content, { color: colors.textPrimary }]}>
-                      {item.content}
-                    </Text>
+                    <LinkedText
+                      text={item.content}
+                      textStyle={[styles.content, { color: colors.textPrimary }]}
+                      linkColor={colors.brand.primary}
+                    />
                   </View>
                   <TouchableOpacity onPress={() => handleFlag(item.id)} style={styles.flagBtn}>
                     <Flag size={16} color={colors.textMuted} />

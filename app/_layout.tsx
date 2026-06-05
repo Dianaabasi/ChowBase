@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from 'react-native';
@@ -40,6 +40,7 @@ export default function RootLayout() {
   const router = useRouter();
   const { user, setUser, clearUser } = useAuthStore();
   const setUserId = useChatStore((s) => s.setUserId);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
 
   const [fontsLoaded, fontError] = useFonts({
     'Sora-Regular': Sora_400Regular,
@@ -71,6 +72,7 @@ export default function RootLayout() {
         clearUser();
         setUserId(null);
       }
+      setIsSessionLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -93,7 +95,8 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!fontsLoaded && !fontError) return;
+    // Don't navigate until fonts AND the session check are both done
+    if ((!fontsLoaded && !fontError) || isSessionLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const firstSegment = segments[0];

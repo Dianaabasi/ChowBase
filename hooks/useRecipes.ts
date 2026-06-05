@@ -22,7 +22,7 @@ export function useRecipes(category?: string, feedFilter: 'all' | 'following' = 
       }
       let query = supabase
         .from("recipes")
-        .select("*, profiles!recipes_author_id_fkey(username, avatar_url, is_verified), likes(count), recipe_steps(*)")
+        .select("*, profiles!recipes_author_id_fkey(username, avatar_url, is_verified), likes(count), comments(count), recipe_steps(*)")
         .eq("status", "published");
       
       if (category) {

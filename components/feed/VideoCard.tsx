@@ -23,7 +23,8 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
   const router = useRouter();
   const colors = useThemeColors();
   const [isMuted, setIsMuted] = useState(true);
-  const { isLiked, toggleLike } = useLike(recipe.id);
+  const { isLiked, likesCount, toggleLike } = useLike(recipe.id, Number(recipe.likes?.[0]?.count ?? 0));
+  const commentCount = Number(recipe.comments?.[0]?.count ?? 0);
   const [showComments, setShowComments] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   
@@ -108,14 +109,17 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.likeButton}
+              style={styles.counterBtn}
               onPress={toggleLike}
             >
               <Heart 
-                size={24} 
+                size={22} 
                 color={isLiked ? '#E11D48' : colors.textSecondary} 
                 weight={isLiked ? 'fill' : 'regular'}
               />
+              <Text style={[styles.counterText, { color: isLiked ? '#E11D48' : colors.textSecondary }]}>
+                {likesCount > 0 ? likesCount : ''}
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -128,8 +132,11 @@ export function VideoCard({ recipe, isVisible = true }: VideoCardProps) {
               <Text style={styles.cookButtonText}>Cook This 🍳</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.commentBtn} onPress={() => setShowComments(true)}>
-              <ChatCircle size={24} color={colors.textSecondary} />
+            <TouchableOpacity style={styles.counterBtn} onPress={() => setShowComments(true)}>
+              <ChatCircle size={22} color={colors.textSecondary} />
+              <Text style={[styles.counterText, { color: colors.textSecondary }]}>
+                {commentCount > 0 ? commentCount : ''}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -224,9 +231,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Sora-SemiBold',
     fontSize: 15,
   },
-  commentBtn: {
-    padding: 8,
+  counterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     backgroundColor: 'rgba(0,0,0,0.05)',
     borderRadius: 20,
+  },
+  counterText: {
+    fontFamily: 'DM-Sans-Medium',
+    fontSize: 13,
   },
 });

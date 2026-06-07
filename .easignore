@@ -1,0 +1,5 @@
+admin/
+supabase/
+docs/
+pg-seed/
+scratch_test.js

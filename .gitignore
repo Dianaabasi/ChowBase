@@ -43,8 +43,9 @@ yarn-error.*
 
 # Supabase
 supabase/.temp/*
+supabase/migrations/*
 
 # Docs
 /docs/*
-/.vscode
-/.claude
+.vscode/*
+

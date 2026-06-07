@@ -17,7 +17,7 @@ serve(async (req) => {
     // We expect payload from a Supabase Postgres Trigger (Webhook)
     const { table, type, record } = payload;
     
-    if (type !== 'INSERT') {
+    if (type !== 'INSERT' && type !== 'MANUAL') {
       return new Response(JSON.stringify({ message: "Ignored non-insert event" }), { headers: corsHeaders, status: 200 });
     }
 
@@ -27,7 +27,49 @@ serve(async (req) => {
 
     let pushMessages = [];
 
-    if (table === 'notifications') {
+    if (payload.type === 'MANUAL') {
+      const { target, title, body } = payload;
+      if (!title || !body) {
+        return new Response(JSON.stringify({ error: "Missing title or body" }), { headers: corsHeaders, status: 400 });
+      }
+
+      if (target === 'all') {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('expo_push_token')
+          .eq('push_enabled', true)
+          .not('expo_push_token', 'is', null);
+
+        if (profiles && profiles.length > 0) {
+          for (const p of profiles) {
+            pushMessages.push({
+              to: p.expo_push_token,
+              sound: 'default',
+              title,
+              body,
+              data: { url: 'chowbase://home' },
+            });
+          }
+        }
+      } else {
+        // Target is specific user id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('expo_push_token, push_enabled')
+          .eq('id', target)
+          .single();
+
+        if (profile && profile.push_enabled && profile.expo_push_token) {
+          pushMessages.push({
+            to: profile.expo_push_token,
+            sound: 'default',
+            title,
+            body,
+            data: { url: 'chowbase://home' },
+          });
+        }
+      }
+    } else if (table === 'notifications') {
       // 1. Single recipient for in-app notifications
       const recipientId = record.recipient_id;
       

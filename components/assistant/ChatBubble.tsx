@@ -4,12 +4,14 @@ import * as Clipboard from 'expo-clipboard';
 import { useThemeColors } from '../../constants/theme';
 import Markdown from 'react-native-markdown-display';
 import { Sparkle, Copy } from 'phosphor-react-native';
+import { Image } from 'expo-image';
 import { useModalStore } from '../../stores/modalStore';
 
 interface ChatBubbleProps {
   message: {
     role: 'user' | 'assistant';
     content: string;
+    image?: string;
   };
   animate?: boolean;
 }
@@ -63,7 +65,16 @@ export function ChatBubble({ message, animate = false }: ChatBubbleProps) {
         ]}
       >
         {isUser ? (
-          <Text style={styles.userText}>{message.content}</Text>
+          <View>
+            {message.image && (
+              <Image 
+                source={{ uri: message.image }} 
+                style={styles.messageImage} 
+                contentFit="cover" 
+              />
+            )}
+            {message.content ? <Text style={styles.userText}>{message.content}</Text> : null}
+          </View>
         ) : (
           <Markdown 
             style={{
@@ -132,6 +143,12 @@ const styles = StyleSheet.create({
     fontFamily: 'DM-Sans',
     fontSize: 16,
     lineHeight: 24,
+  },
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 8,
   },
   copyPopup: {
     position: 'absolute',

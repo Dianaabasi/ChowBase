@@ -18,14 +18,15 @@ export default function NotificationsSettingsScreen() {
     updateSettings({ [key]: !settings[key] });
   };
 
-  const SettingRow = ({ title, settingKey, isLast = false }: { title: string, settingKey: keyof NotificationSettings, isLast?: boolean }) => (
-    <View style={[styles.row, !isLast && { borderBottomColor: colors.borderSubtle, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+  const SettingRow = ({ title, settingKey, isLast = false, disabled = false, overrideValue }: { title: string, settingKey: keyof NotificationSettings, isLast?: boolean, disabled?: boolean, overrideValue?: boolean }) => (
+    <View style={[styles.row, !isLast && { borderBottomColor: colors.borderSubtle, borderBottomWidth: StyleSheet.hairlineWidth }, disabled && { opacity: 0.5 }]}>
       <Text style={[styles.rowLabel, { color: colors.textPrimary }]}>{title}</Text>
       <Switch 
-        value={settings[settingKey]} 
+        value={overrideValue !== undefined ? overrideValue : settings[settingKey]} 
         onValueChange={() => toggleSetting(settingKey)}
         trackColor={{ false: colors.bgSecondary, true: colors.brand.primary }}
         thumbColor="#FFF"
+        disabled={disabled}
       />
     </View>
   );
@@ -59,9 +60,9 @@ export default function NotificationsSettingsScreen() {
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>In-App Notifications</Text>
         <GlassCard style={styles.card}>
           <SettingRow title="Allow Notifications" settingKey="pushAll" />
-          <SettingRow title="New Followers" settingKey="newFollowers" />
-          <SettingRow title="Recipe Likes" settingKey="recipeLikes" />
-          <SettingRow title="Recipe Comments" settingKey="recipeComments" isLast />
+          <SettingRow title="New Followers" settingKey="newFollowers" disabled={!settings.pushAll} overrideValue={!settings.pushAll ? false : undefined} />
+          <SettingRow title="Recipe Likes" settingKey="recipeLikes" disabled={!settings.pushAll} overrideValue={!settings.pushAll ? false : undefined} />
+          <SettingRow title="Recipe Comments" settingKey="recipeComments" isLast disabled={!settings.pushAll} overrideValue={!settings.pushAll ? false : undefined} />
         </GlassCard>
 
       </ScrollView>

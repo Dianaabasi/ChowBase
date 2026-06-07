@@ -7,11 +7,8 @@ import { useThemeColors } from '../../constants/theme';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { GreenButton } from '../../components/ui/GreenButton';
 import { useModalStore } from '../../stores/modalStore';
-import { useChatStore } from '../../stores/chatStore';
-import { useNotificationStore } from '../../stores/notificationStore';
 import { supabase } from '../../lib/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PrivacySecurityScreen() {
   const insets = useSafeAreaInsets();
@@ -70,27 +67,43 @@ export default function PrivacySecurityScreen() {
     }
   };
 
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const handleDeleteAccount = () => {
     useModalStore.getState().showAlert({
       title: 'Delete Account',
-      message: 'Are you absolutely sure? This action cannot be undone and will permanently delete your profile, recipes, and data.',
+      message: 'Are you absolutely sure? This action cannot be undone and will permanently delete your profile, recipes, and all associated data.',
       confirmText: 'Delete Forever',
       isDestructive: true,
       showCancel: true,
       onConfirm: async () => {
-        // Save chat history before clearing anything
-        const chatState = useChatStore.getState();
-        if (chatState.userId && chatState.conversations.length > 0) {
-          await AsyncStorage.setItem(
-            `chowbase-chat-${chatState.userId}`,
-            JSON.stringify(chatState.conversations)
-          );
+        setDeleteLoading(true);
+        try {
+          // Call the server-side function to delete the account
+          const { error: rpcError } = await supabase.rpc('delete_user_account');
+          
+          if (rpcError) throw rpcError;
+
+          // Clear local state
+          clearUser();
+          
+          // Sign out (session will be invalid anyway after deletion)
+          await supabase.auth.signOut();
+          
+          router.replace('/(auth)/welcome');
+
+          useModalStore.getState().showAlert({
+            title: 'Account Deleted',
+            message: 'Your account and all associated data have been permanently deleted.'
+          });
+        } catch (e: any) {
+          console.error('Account deletion error:', e);
+          setDeleteLoading(false);
+          useModalStore.getState().showAlert({
+            title: 'Error',
+            message: e.message || 'Failed to delete account. Please try again or contact support.'
+          });
         }
-        // Navigate instantly, sign out in background
-        clearUser();
-        router.replace('/(auth)/welcome');
-        supabase.auth.signOut();
-        useModalStore.getState().showAlert({ title: 'Account Deleted', message: 'Your account has been queued for deletion.' });
       }
     });
   };
@@ -156,10 +169,11 @@ export default function PrivacySecurityScreen() {
             Once you delete your account, there is no going back. Please be certain.
           </Text>
           <TouchableOpacity 
-            style={[styles.deleteBtn, { backgroundColor: 'rgba(255,0,0,0.1)' }]} 
+            style={[styles.deleteBtn, { backgroundColor: 'rgba(255,0,0,0.1)', opacity: deleteLoading ? 0.5 : 1 }]} 
             onPress={handleDeleteAccount}
+            disabled={deleteLoading}
           >
-            <Text style={[styles.deleteBtnText, { color: colors.error }]}>Delete Account</Text>
+            <Text style={[styles.deleteBtnText, { color: colors.error }]}>{deleteLoading ? 'Deleting...' : 'Delete Account'}</Text>
           </TouchableOpacity>
         </GlassCard>
 

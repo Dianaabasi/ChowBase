@@ -8,6 +8,7 @@ export interface Message {
   content: string;
   role: 'user' | 'assistant';
   created_at: string;
+  image?: string;
 }
 
 export interface Conversation {
@@ -22,7 +23,7 @@ interface ChatState {
   userId: string | null;
   conversations: Conversation[];
   setUserId: (id: string | null) => Promise<void>;
-  createConversation: (title: string, sapaMode: boolean, initialPrompt?: string) => string;
+  createConversation: (title: string, sapaMode: boolean, initialPrompt?: string, initialImage?: string) => string;
   addMessage: (conversationId: string, role: 'user' | 'assistant', content: string) => void;
   deleteConversation: (conversationId: string) => void;
 }
@@ -69,7 +70,7 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     }
   },
 
-  createConversation: (title, sapaMode, initialPrompt) => {
+  createConversation: (title, sapaMode, initialPrompt, initialImage) => {
     const id = uuidv4();
     const messages: Message[] = [
       {
@@ -80,11 +81,12 @@ export const useChatStore = create<ChatState>()((set, get) => ({
       },
     ];
 
-    if (initialPrompt) {
+    if (initialPrompt || initialImage) {
       messages.push({
         id: uuidv4(),
-        content: initialPrompt,
+        content: initialPrompt || '',
         role: 'user',
+        image: initialImage,
         created_at: new Date().toISOString(),
       });
     }

@@ -122,14 +122,19 @@ export default function RootLayout() {
         router.replace('/(auth)');
       }
     } else {
-      if (!user.username && secondSegment !== 'choose-username') {
-        router.replace('/(auth)/choose-username');
-      } else if (!user.has_onboarded && secondSegment !== 'preferences' && secondSegment !== 'choose-username') {
-        router.replace('/(auth)/preferences');
-      } else if (inAuthGroup) {
-        if (secondSegment !== 'choose-username' && secondSegment !== 'preferences') {
-          router.replace('/(tabs)/feed');
+      if (!user.username) {
+        // No username yet — send to choose-username
+        if (secondSegment !== 'choose-username') {
+          router.replace('/(auth)/choose-username');
         }
+      } else if (!user.has_onboarded) {
+        // Has username but hasn't completed onboarding — send to preferences
+        if (secondSegment !== 'preferences') {
+          router.replace('/(auth)/preferences');
+        }
+      } else if (inAuthGroup) {
+        // Fully onboarded but still in auth group — send to feed
+        router.replace('/(tabs)/feed');
       }
     }
   }, [user, segments, fontsLoaded, fontError]);

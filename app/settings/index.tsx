@@ -15,7 +15,7 @@ import { useNotificationStore } from '../../stores/notificationStore';
 import { useProfile } from '../../hooks/useProfile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const APP_VERSION = "1.0.2";
+const APP_VERSION = "1.0.4";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();

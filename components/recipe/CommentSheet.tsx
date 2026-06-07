@@ -138,7 +138,7 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
     >
       <KeyboardAvoidingView 
         style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
         

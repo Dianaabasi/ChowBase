@@ -7,6 +7,8 @@ import { X, Lightning, LightningSlash, ArrowsClockwise } from 'phosphor-react-na
 import { useThemeColors } from '../../../constants/theme';
 import { supabase } from '../../../lib/supabase';
 import { useModalStore } from '../../../stores/modalStore';
+import { useChatStore } from '../../../stores/chatStore';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -49,25 +51,66 @@ export default function ScannerScreen() {
     
     setIsScanning(true);
     try {
-      const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.5 });
+      const photo = await cameraRef.current.takePictureAsync({ base64: false, quality: 0.5 });
+      
+      if (!photo?.uri) throw new Error("Failed to capture image.");
+
+      const resizedPhoto = await ImageManipulator.manipulateAsync(
+        photo.uri,
+        [{ resize: { width: 800 } }],
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+      );
       
       // Send to Edge Function
       const { data, error } = await supabase.functions.invoke('pantry-vision', {
-        body: { image_base64: photo?.base64 }
+        body: { image_base64: resizedPhoto.base64 }
       });
 
-      if (error) throw error;
+      if (error) {
+         let serverErrorMsg = error.message;
+         
+         // If it's a FunctionsHttpError, it may contain the server's JSON error response
+         if (error.context && typeof error.context.json === 'function') {
+           try {
+             const errorData = await error.context.json();
+             if (errorData?.error) serverErrorMsg = errorData.error;
+           } catch (_) {}
+         }
+         
+         if (serverErrorMsg.includes('Failed to fetch') || serverErrorMsg.includes('Network')) {
+            throw new Error('Network connection issue. Please check your internet connection and try again.');
+         }
+         throw new Error(serverErrorMsg || 'Failed to analyze the image. Please try again.');
+      }
 
-      useModalStore.getState().showAlert({
-        title: 'Scan Complete',
-        message: `Found ingredients: ${data.ingredients.join(', ')}`
+      if (!data || !data.ingredients || data.ingredients.length === 0) {
+         useModalStore.getState().showAlert({
+            title: 'No Food Detected',
+            message: "We couldn't clearly identify any food items. Try getting closer or improving the lighting."
+         });
+         return;
+      }
+
+      const foundItems = data.ingredients.join(', ');
+      const prompt = `I have scanned these ingredients: ${foundItems}. What can I cook with them?`;
+      const imageUri = `data:image/jpeg;base64,${resizedPhoto.base64}`;
+      
+      const conversationId = useChatStore.getState().createConversation(
+         `Cooking with ${data.ingredients[0]}...`,
+         false,
+         prompt,
+         imageUri
+      );
+      
+      router.replace({
+        pathname: '/assistant/chat',
+        params: { conversationId }
       });
-      // In a real app, we would pass these to the chat or a results screen
 
     } catch (e: any) {
       useModalStore.getState().showAlert({
         title: 'Scan Failed',
-        message: e.message
+        message: e.message || 'An unexpected error occurred during scanning.'
       });
     } finally {
       setIsScanning(false);

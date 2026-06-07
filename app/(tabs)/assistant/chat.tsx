@@ -29,6 +29,7 @@ export default function ChatScreen() {
   
   // Track how many messages existed when we opened the chat so we don't animate historical messages
   const initialMessageCount = useRef(messages.length).current;
+  const isCloseToBottom = useRef(true);
 
   useEffect(() => {
     if (conversation && conversation.messages.length === 2 && conversation.messages[1].role === 'user') {
@@ -119,7 +120,16 @@ export default function ChatScreen() {
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
           automaticallyAdjustKeyboardInsets={true}
-          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+          scrollEventThrottle={16}
+          onScroll={({ nativeEvent }) => {
+            const paddingToBottom = 100;
+            isCloseToBottom.current = nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >= nativeEvent.contentSize.height - paddingToBottom;
+          }}
+          onContentSizeChange={() => {
+            if (isCloseToBottom.current) {
+              scrollViewRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
         >
           {messages.map((msg, index) => (
             <ChatBubble 

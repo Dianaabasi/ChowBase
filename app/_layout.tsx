@@ -22,6 +22,24 @@ import {
   DMSans_700Bold,
 } from '@expo-google-fonts/dm-sans';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
+
+if (Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
+  try {
+    const Notifications = require('expo-notifications');
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
+    });
+  } catch (e) {
+    console.warn("Push notifications error: ", e);
+  }
+}
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();

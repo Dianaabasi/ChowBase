@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, useColorScheme } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { CaretLeft, SignOut, Bell, Shield, Question, CookingPot, FileText, Info, CaretRight, Moon } from 'phosphor-react-native';
@@ -15,13 +15,15 @@ import { useNotificationStore } from '../../stores/notificationStore';
 import { useProfile } from '../../hooks/useProfile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const APP_VERSION = "1.0.4";
+const APP_VERSION = "1.0.6";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const colors = useThemeColors();
+  const systemScheme = useColorScheme();
   const { themeMode, setThemeMode } = useThemeStore();
+  const isDarkMode = themeMode === 'dark' || (themeMode === 'system' && systemScheme === 'dark');
   const { user, clearUser } = useAuthStore();
   const { data: profile } = useProfile(user?.username || '');
 
@@ -146,7 +148,7 @@ export default function SettingsScreen() {
             icon={Moon} 
             title="Dark Mode" 
             subtitle="Switch to dark theme" 
-            value={themeMode === 'dark'}
+            value={isDarkMode}
             onValueChange={(val: boolean) => setThemeMode(val ? 'dark' : 'light')}
             isLast
           />

@@ -3,7 +3,7 @@
     "name": "ChowBase",
     "slug": "chowbase",
     "owner": "dnoble",
-    "version": "1.0.4",
+    "version": "1.0.6",
     "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -28,7 +29,10 @@
       "expo-router",
       "expo-video",
       "expo-audio",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-camera",
+      "expo-image-picker",
+      "expo-secure-store"
     ],
     "extra": {
       "eas": {

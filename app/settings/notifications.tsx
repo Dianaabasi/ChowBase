@@ -111,9 +111,15 @@ export default function NotificationsSettingsScreen() {
     } catch (e: any) {
       console.error(e);
       setIsPushEnabled(!newValue); // Revert on error
+      
+      const isFirebaseError = e.message?.includes('google-services') || e.message?.includes('FirebaseApp');
+      const errorMessage = isFirebaseError 
+        ? 'Firebase configuration is required to register for Push Notifications on Android standalone builds.'
+        : 'Failed to update push notification settings. Please try again.';
+
       useModalStore.getState().showAlert({
-        title: 'Error',
-        message: 'Failed to update push notification settings. Please try again.',
+        title: 'Push Setup Error',
+        message: errorMessage,
       });
     }
   };

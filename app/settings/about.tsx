@@ -29,7 +29,7 @@ export default function AboutScreen() {
             style={styles.logoImage} 
             contentFit="contain"
           />
-          <Text style={[styles.appVersion, { color: colors.textMuted }]}>Version 1.0.4</Text>
+          <Text style={[styles.appVersion, { color: colors.textMuted }]}>Version 1.0.6</Text>
         </View>
 
         <GlassCard style={styles.card}>

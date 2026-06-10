@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import { useChatStore } from '../stores/chatStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useNotificationListener } from '../hooks/useNotificationListener';
+import { syncPushStatus } from '../lib/pushNotifications';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
@@ -93,6 +94,7 @@ export default function RootLayout() {
         });
         setChatUserId(session.user.id);
         setNotificationUserId(session.user.id);
+        syncPushStatus(session.user.id);
       } else {
         clearUser();
         setChatUserId(null);
@@ -112,6 +114,7 @@ export default function RootLayout() {
         });
         setChatUserId(session.user.id);
         setNotificationUserId(session.user.id);
+        syncPushStatus(session.user.id);
       } else {
         // Only clear if not already cleared (instant-logout already handled it)
         const currentUser = useAuthStore.getState().user;

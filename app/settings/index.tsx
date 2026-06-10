@@ -14,8 +14,9 @@ import { useChatStore } from '../../stores/chatStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useProfile } from '../../hooks/useProfile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { unregisterPushNotificationsForUser } from '../../lib/pushNotifications';
 
-const APP_VERSION = "1.0.6";
+const APP_VERSION = "1.0.8";
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -44,6 +45,9 @@ export default function SettingsScreen() {
           );
         }
         // Now clear state and navigate
+        if (user?.id) {
+          await unregisterPushNotificationsForUser(user.id);
+        }
         clearUser();
         router.replace('/(auth)/welcome');
         supabase.auth.signOut();

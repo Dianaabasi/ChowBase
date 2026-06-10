@@ -135,10 +135,11 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
       animationType="slide"
       transparent={true}
       onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
       <KeyboardAvoidingView 
         style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
         

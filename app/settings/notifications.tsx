@@ -8,9 +8,15 @@ import { GlassCard } from '../../components/ui/GlassCard';
 import { useNotificationStore, NotificationSettings } from '../../stores/notificationStore';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../lib/supabase';
-import * as Device from 'expo-device';
-import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { useModalStore } from '../../stores/modalStore';
+import { 
+  getPushEnabledLocal, 
+  setPushEnabledLocal, 
+  registerPushNotificationsForUser, 
+  unregisterPushNotificationsForUser,
+  registerPushNotificationsLocalOnly,
+  unregisterPushNotificationsLocalOnly 
+} from '../../lib/pushNotifications';
 
 export default function NotificationsSettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -24,103 +30,56 @@ export default function NotificationsSettingsScreen() {
 
   React.useEffect(() => {
     async function loadPushState() {
-      if (!user?.id) return;
-      const { data } = await supabase.from('profiles').select('push_enabled').eq('id', user.id).single();
-      if (data) {
-        setIsPushEnabled(!!data.push_enabled);
-      }
+      // 1. Immediately load local setting so toggle behaves instantly
+      const localVal = await getPushEnabledLocal();
+      setIsPushEnabled(localVal);
       setIsLoading(false);
+
+      // 2. If user is logged in, sync/fetch database status to be sure
+      if (user?.id) {
+        try {
+          const { data } = await supabase.from('profiles').select('push_enabled').eq('id', user.id).single();
+          if (data) {
+            const dbPushEnabled = !!data.push_enabled;
+            if (dbPushEnabled !== localVal) {
+              setIsPushEnabled(dbPushEnabled);
+              await setPushEnabledLocal(dbPushEnabled);
+            }
+          }
+        } catch (e) {
+          console.error('Failed to sync settings from database:', e);
+        }
+      }
     }
     loadPushState();
   }, [user]);
 
   const togglePushNotifications = async () => {
-    if (!user?.id) return;
-    
     const newValue = !isPushEnabled;
-    setIsPushEnabled(newValue); // Optimistic UI update
+    
+    // 1. Optimistic local update
+    setIsPushEnabled(newValue);
+    await setPushEnabledLocal(newValue);
 
     try {
-      if (newValue) {
-        if (!Device.isDevice) {
-          throw new Error('Must use physical device for Push Notifications');
+      if (user?.id) {
+        if (newValue) {
+          await registerPushNotificationsForUser(user.id);
+        } else {
+          await unregisterPushNotificationsForUser(user.id);
         }
-        
-        if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-          throw new Error('Push notifications are disabled in Expo Go. Use a development build.');
-        }
-
-        let Notifications;
-        try {
-          Notifications = require('expo-notifications');
-        } catch (err) {
-          throw new Error('Push notifications failed to load.');
-        }
-        
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-        
-        if (existingStatus !== 'granted') {
-          const { status } = await Notifications.requestPermissionsAsync();
-          finalStatus = status;
-        }
-        
-        if (finalStatus !== 'granted') {
-          setIsPushEnabled(false);
-          useModalStore.getState().showAlert({
-            title: 'Permission Denied',
-            message: 'Please enable notifications in your phone settings to use this feature.',
-          });
-          return;
-        }
-
-        const projectId = Constants.expoConfig?.extra?.eas?.projectId || '1f0d0703-2484-4b7a-a723-f96aa2b5fcad';
-        const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
-        
-        await supabase.from('profiles').update({ 
-          push_enabled: true, 
-          expo_push_token: tokenData.data 
-        }).eq('id', user.id);
-
-        await Notifications.cancelAllScheduledNotificationsAsync();
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "Time to Cook! 👨‍🍳",
-            body: "Hungry? Open ChowBase and try cooking something new today!",
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes ? Notifications.SchedulableTriggerInputTypes.DAILY : 'daily',
-            hour: 11,
-            minute: 0,
-          },
-        });
-
       } else {
-        await supabase.from('profiles').update({ 
-          push_enabled: false,
-          expo_push_token: null
-        }).eq('id', user.id);
-
-        if (Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
-          try {
-            const Notifications = require('expo-notifications');
-            await Notifications.cancelAllScheduledNotificationsAsync();
-          } catch (e) {}
+        // Logged out toggle support
+        if (newValue) {
+          await registerPushNotificationsLocalOnly();
+        } else {
+          await unregisterPushNotificationsLocalOnly();
         }
       }
-    } catch (e: any) {
-      console.error(e);
-      setIsPushEnabled(!newValue); // Revert on error
-      
-      const isFirebaseError = e.message?.includes('google-services') || e.message?.includes('FirebaseApp');
-      const errorMessage = isFirebaseError 
-        ? 'Firebase configuration is required to register for Push Notifications on Android standalone builds.'
-        : 'Failed to update push notification settings. Please try again.';
-
-      useModalStore.getState().showAlert({
-        title: 'Push Setup Error',
-        message: errorMessage,
-      });
+    } catch (e) {
+      // Revert on error
+      setIsPushEnabled(!newValue);
+      await setPushEnabledLocal(!newValue);
     }
   };
 

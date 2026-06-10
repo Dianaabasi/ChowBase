@@ -3,7 +3,7 @@
     "name": "ChowBase",
     "slug": "chowbase",
     "owner": "dnoble",
-    "version": "1.0.6",
+    "version": "1.0.8",
     "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -38,7 +38,8 @@
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#ffffff",
+          "imageWidth": 300
         }
       ]
     ],

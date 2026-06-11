@@ -158,7 +158,7 @@ export default function VaultScreen() {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isLoading ? (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 16 }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
               <VaultSkeleton />
               <VaultSkeleton />
               <VaultSkeleton />

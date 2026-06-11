@@ -184,7 +184,7 @@ export default function RecipeDetailScreen() {
   const sortedSteps = [...(recipe.recipe_steps || [])].sort((a, b) => a.step_number - b.step_number);
 
   const handleShare = async () => {
-    const link = `chowbase://recipe/${recipe.id}`;
+    const link = `https://chowbase.app/recipe/${recipe.id}`;
     useModalStore.getState().showAlert({
       title: 'Share Recipe',
       message: `Share this link with your friends to show them this amazing recipe:\n\n${link}`,

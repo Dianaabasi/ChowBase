@@ -14,7 +14,6 @@ import { useChatStore } from '../../stores/chatStore';
 import { useNotificationStore } from '../../stores/notificationStore';
 import { useProfile } from '../../hooks/useProfile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { unregisterPushNotificationsForUser } from '../../lib/pushNotifications';
 
 const APP_VERSION = "1.0.8";
 
@@ -44,13 +43,13 @@ export default function SettingsScreen() {
             JSON.stringify(chatState.conversations)
           );
         }
-        // Now clear state and navigate
-        if (user?.id) {
-          await unregisterPushNotificationsForUser(user.id);
-        }
+        
+        // Fire off network requests asynchronously so they don't block UI
+        supabase.auth.signOut().catch(console.error);
+        
+        // Clear state and navigate instantly
         clearUser();
         router.replace('/(auth)/welcome');
-        supabase.auth.signOut();
       }
     });
   };

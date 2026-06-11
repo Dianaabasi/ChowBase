@@ -34,16 +34,15 @@ serve(async (req) => {
       }
 
       if (target === 'all') {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('expo_push_token')
-          .eq('push_enabled', true)
-          .not('expo_push_token', 'is', null);
+        const { data: devices } = await supabase
+          .from('device_push_tokens')
+          .select('push_token')
+          .eq('is_active', true);
 
-        if (profiles && profiles.length > 0) {
-          for (const p of profiles) {
+        if (devices && devices.length > 0) {
+          for (const d of devices) {
             pushMessages.push({
-              to: p.expo_push_token,
+              to: d.push_token,
               sound: 'default',
               title,
               body,
@@ -107,23 +106,22 @@ serve(async (req) => {
       });
 
     } else if (table === 'recipes') {
-      // 2. Broadcast to all users for a new recipe
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('expo_push_token')
-        .eq('push_enabled', true)
-        .not('expo_push_token', 'is', null);
+      // 2. Broadcast to all devices for a new recipe
+      const { data: devices } = await supabase
+        .from('device_push_tokens')
+        .select('push_token')
+        .eq('is_active', true);
 
-      if (!profiles || profiles.length === 0) {
+      if (!devices || devices.length === 0) {
         return new Response(JSON.stringify({ message: "No active push tokens found" }), { headers: corsHeaders, status: 200 });
       }
 
       const title = "New Recipe Alert! 🍲";
       const body = `A new recipe "${record.title}" was just published! Check it out.`;
 
-      for (const p of profiles) {
+      for (const d of devices) {
         pushMessages.push({
-          to: p.expo_push_token,
+          to: d.push_token,
           sound: 'default',
           title,
           body,

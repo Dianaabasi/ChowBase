@@ -21,53 +21,9 @@ export async function setPushEnabledLocal(enabled: boolean): Promise<void> {
   } catch (_) {}
 }
 
-export async function registerPushNotificationsLocalOnly(): Promise<void> {
-  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-    return;
-  }
-  try {
-    let Notifications;
-    try {
-      Notifications = require('expo-notifications');
-    } catch (err) {
-      return;
-    }
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    if (finalStatus === 'granted') {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "Time to Cook! 👨‍🍳",
-          body: "Hungry? Open ChowBase and try cooking something new today!",
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes ? Notifications.SchedulableTriggerInputTypes.DAILY : 'daily',
-          hour: 11,
-          minute: 0,
-        },
-      });
-    }
-  } catch (e) {
-    console.warn('Failed to schedule local notifications:', e);
-  }
-}
 
-export async function unregisterPushNotificationsLocalOnly(): Promise<void> {
-  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
-    return;
-  }
-  try {
-    const Notifications = require('expo-notifications');
-    await Notifications.cancelAllScheduledNotificationsAsync();
-  } catch (e) {}
-}
 
-export async function registerPushNotificationsForUser(userId: string, silent = false): Promise<string | null> {
+export async function registerGlobalPushNotifications(silent = false): Promise<string | null> {
   try {
     if (!Device.isDevice) {
       throw new Error('Must use physical device for Push Notifications');
@@ -106,16 +62,21 @@ export async function registerPushNotificationsForUser(userId: string, silent = 
     const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
     const pushToken = tokenData.data;
 
-    // Update DB profile
-    const { error } = await supabase.from('profiles').update({ 
-      push_enabled: true, 
-      expo_push_token: pushToken 
-    }).eq('id', userId);
+    // Upsert into global device_push_tokens table
+    const { error } = await supabase.from('device_push_tokens').upsert(
+      { push_token: pushToken, is_active: true },
+      { onConflict: 'push_token' }
+    );
 
     if (error) throw error;
+    
+    // Save locally
+    await setPushEnabledLocal(true);
 
-    // Schedule local notification
+    // Schedule daily local notifications
     await Notifications.cancelAllScheduledNotificationsAsync();
+
+    // 11:00 AM — Morning reminder
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "Time to Cook! 👨‍🍳",
@@ -124,6 +85,19 @@ export async function registerPushNotificationsForUser(userId: string, silent = 
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes ? Notifications.SchedulableTriggerInputTypes.DAILY : 'daily',
         hour: 11,
+        minute: 0,
+      },
+    });
+
+    // 7:00 PM — Evening reminder
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "What's for Dinner? 🍽️",
+        body: "Need dinner inspiration? Browse recipes on ChowBase!",
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes ? Notifications.SchedulableTriggerInputTypes.DAILY : 'daily',
+        hour: 19,
         minute: 0,
       },
     });
@@ -149,51 +123,71 @@ export async function registerPushNotificationsForUser(userId: string, silent = 
   }
 }
 
-export async function unregisterPushNotificationsForUser(userId: string): Promise<void> {
+export async function unregisterGlobalPushNotifications(): Promise<void> {
   try {
-    // Disable in Supabase
-    await supabase.from('profiles').update({ 
-      push_enabled: false,
-      expo_push_token: null
-    }).eq('id', userId);
+    let Notifications;
+    try {
+      Notifications = require('expo-notifications');
+    } catch (err) {
+      return;
+    }
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId || '1f0d0703-2484-4b7a-a723-f96aa2b5fcad';
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId }).catch(() => null);
+    
+    if (tokenData?.data) {
+      // Disable in global table
+      await supabase.from('device_push_tokens').update({ 
+        is_active: false 
+      }).eq('push_token', tokenData.data);
+    }
+
+    await setPushEnabledLocal(false);
 
     if (Constants.executionEnvironment !== ExecutionEnvironment.StoreClient) {
-      try {
-        const Notifications = require('expo-notifications');
-        await Notifications.cancelAllScheduledNotificationsAsync();
-      } catch (e) {}
+      await Notifications.cancelAllScheduledNotificationsAsync().catch(() => {});
     }
   } catch (e) {
     console.error('Error unregistering push notifications:', e);
   }
 }
 
-export async function syncPushStatus(userId: string | null): Promise<void> {
-  if (!userId) return;
-
+export async function syncPushStatus(): Promise<void> {
   try {
     const localVal = await AsyncStorage.getItem(PUSH_ENABLED_KEY);
     if (localVal !== null) {
       const localPushEnabled = JSON.parse(localVal);
       if (localPushEnabled) {
         // Register token silently
-        await registerPushNotificationsForUser(userId, true);
+        await registerGlobalPushNotifications(true);
       } else {
         // Unregister
-        await unregisterPushNotificationsForUser(userId);
-      }
-    } else {
-      // First time checking settings. Let's see what DB profile has.
-      const { data } = await supabase.from('profiles').select('push_enabled').eq('id', userId).single();
-      if (data) {
-        const dbPushEnabled = !!data.push_enabled;
-        await AsyncStorage.setItem(PUSH_ENABLED_KEY, JSON.stringify(dbPushEnabled));
-        if (dbPushEnabled) {
-          await registerPushNotificationsForUser(userId, true);
-        }
+        await unregisterGlobalPushNotifications();
       }
     }
   } catch (e) {
     console.error('Error syncing push status:', e);
+  }
+}
+
+export async function linkDeviceTokenToProfile(userId: string): Promise<void> {
+  try {
+    let Notifications;
+    try {
+      Notifications = require('expo-notifications');
+    } catch (err) {
+      return;
+    }
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId || '1f0d0703-2484-4b7a-a723-f96aa2b5fcad';
+    const tokenData = await Notifications.getExpoPushTokenAsync({ projectId }).catch(() => null);
+    
+    if (tokenData?.data) {
+      // Sync the global token to the user's profile so they receive personal notifications (likes, comments, etc)
+      await supabase.from('profiles').update({ 
+        expo_push_token: tokenData.data 
+      }).eq('id', userId);
+    }
+  } catch (e) {
+    console.error('Error linking device token to profile:', e);
   }
 }

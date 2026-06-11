@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Platform, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRouter } from 'expo-router';
 import { useThemeColors } from '../../constants/theme';
 import { GlassCard } from '../../components/ui/GlassCard';
@@ -86,13 +87,15 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={[styles.container, { backgroundColor: colors.bgPrimary }]} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={[styles.container, { backgroundColor: colors.bgPrimary }]}>
       <BlurHeader title="" transparent />
       
-      <View style={styles.content}>
+      <KeyboardAwareScrollView 
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid={true}
+        extraHeight={120}
+      >
         <View style={styles.headerContainer}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>Welcome back</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Log in to continue</Text>
@@ -160,17 +163,18 @@ export default function LoginScreen() {
             <Text style={[styles.footerLink, { color: colors.brand.primary }]}>Sign Up</Text>
           </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 24,
     justifyContent: 'center',
+    paddingBottom: 24,
   },
   headerContainer: {
     alignItems: 'center',

@@ -9,7 +9,8 @@ import { supabase } from '../lib/supabase';
 import { useChatStore } from '../stores/chatStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useNotificationListener } from '../hooks/useNotificationListener';
-import { syncPushStatus } from '../lib/pushNotifications';
+import { syncPushStatus, registerGlobalPushNotifications, linkDeviceTokenToProfile } from '../lib/pushNotifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
@@ -82,6 +83,20 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
+  // Global Push Notification Initialization
+  useEffect(() => {
+    AsyncStorage.getItem('chowbase-has-prompted-push').then(async (val) => {
+      if (!val) {
+        await AsyncStorage.setItem('chowbase-has-prompted-push', 'true');
+        // Prompt on first launch (not silent)
+        registerGlobalPushNotifications(false).catch(() => {});
+      } else {
+        // Just sync existing status
+        syncPushStatus().catch(() => {});
+      }
+    });
+  }, []);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
@@ -94,7 +109,7 @@ export default function RootLayout() {
         });
         setChatUserId(session.user.id);
         setNotificationUserId(session.user.id);
-        syncPushStatus(session.user.id);
+        linkDeviceTokenToProfile(session.user.id);
       } else {
         clearUser();
         setChatUserId(null);
@@ -114,7 +129,7 @@ export default function RootLayout() {
         });
         setChatUserId(session.user.id);
         setNotificationUserId(session.user.id);
-        syncPushStatus(session.user.id);
+        linkDeviceTokenToProfile(session.user.id);
       } else {
         // Only clear if not already cleared (instant-logout already handled it)
         const currentUser = useAuthStore.getState().user;

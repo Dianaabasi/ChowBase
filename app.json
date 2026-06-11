@@ -19,7 +19,27 @@
         "backgroundImage": "./assets/android-icon-background.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.dnoble.chowbase"
+      "package": "com.dnoble.chowbase",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": false,
+          "data": [
+            {
+              "scheme": "http",
+              "host": "chowbase.app"
+            },
+            {
+              "scheme": "https",
+              "host": "chowbase.app"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

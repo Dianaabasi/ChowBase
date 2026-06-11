@@ -12,10 +12,8 @@ import { useModalStore } from '../../stores/modalStore';
 import { 
   getPushEnabledLocal, 
   setPushEnabledLocal, 
-  registerPushNotificationsForUser, 
-  unregisterPushNotificationsForUser,
-  registerPushNotificationsLocalOnly,
-  unregisterPushNotificationsLocalOnly 
+  registerGlobalPushNotifications, 
+  unregisterGlobalPushNotifications
 } from '../../lib/pushNotifications';
 
 export default function NotificationsSettingsScreen() {
@@ -30,29 +28,12 @@ export default function NotificationsSettingsScreen() {
 
   React.useEffect(() => {
     async function loadPushState() {
-      // 1. Immediately load local setting so toggle behaves instantly
       const localVal = await getPushEnabledLocal();
       setIsPushEnabled(localVal);
       setIsLoading(false);
-
-      // 2. If user is logged in, sync/fetch database status to be sure
-      if (user?.id) {
-        try {
-          const { data } = await supabase.from('profiles').select('push_enabled').eq('id', user.id).single();
-          if (data) {
-            const dbPushEnabled = !!data.push_enabled;
-            if (dbPushEnabled !== localVal) {
-              setIsPushEnabled(dbPushEnabled);
-              await setPushEnabledLocal(dbPushEnabled);
-            }
-          }
-        } catch (e) {
-          console.error('Failed to sync settings from database:', e);
-        }
-      }
     }
     loadPushState();
-  }, [user]);
+  }, []);
 
   const togglePushNotifications = async () => {
     const newValue = !isPushEnabled;
@@ -62,19 +43,10 @@ export default function NotificationsSettingsScreen() {
     await setPushEnabledLocal(newValue);
 
     try {
-      if (user?.id) {
-        if (newValue) {
-          await registerPushNotificationsForUser(user.id);
-        } else {
-          await unregisterPushNotificationsForUser(user.id);
-        }
+      if (newValue) {
+        await registerGlobalPushNotifications();
       } else {
-        // Logged out toggle support
-        if (newValue) {
-          await registerPushNotificationsLocalOnly();
-        } else {
-          await unregisterPushNotificationsLocalOnly();
-        }
+        await unregisterGlobalPushNotifications();
       }
     } catch (e) {
       // Revert on error

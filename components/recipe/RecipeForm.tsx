@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useThemeColors } from '../../constants/theme';
 import { Recipe, Ingredient, RecipeStep } from '../../types';
 import { Image } from 'expo-image';
@@ -203,11 +204,16 @@ export function RecipeForm({ initialData, onSubmit, isSubmitting }: RecipeFormPr
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView 
-        style={styles.scrollContainer} 
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.content}>
+      <View style={styles.scrollContainer}>
+        <KeyboardAwareScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          enableOnAndroid={true}
+          extraHeight={120}
+          extraScrollHeight={20}
+        >
         
         {/* Recipe Media Section */}
         <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>Recipe Media</Text>
@@ -441,8 +447,8 @@ export function RecipeForm({ initialData, onSubmit, isSubmitting }: RecipeFormPr
         </View>
       ))}
 
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAwareScrollView>
+      </View>
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, FlatList, KeyboardAvoidingView, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Modal, TouchableOpacity, Platform, Animated, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { X, PaperPlaneRight, Flag } from 'phosphor-react-native';
 import { useRouter } from 'expo-router';
@@ -143,7 +143,7 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
       >
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
         
-        <View style={[styles.sheetContent, { backgroundColor: colors.bgPrimary, paddingBottom: insets.bottom || 16 }]}>
+        <View style={[styles.sheetContent, { backgroundColor: colors.bgPrimary }]}>
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.textPrimary }]}>Comments</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -159,43 +159,41 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
               <CommentSkeleton />
             </View>
           ) : (
-            <FlatList
-              data={comments}
-              keyExtractor={item => item.id}
-              contentContainerStyle={styles.listContent}
-              renderItem={({ item }) => (
-                <View style={styles.commentRow}>
-                  <TouchableOpacity onPress={() => handleProfile(item.profiles?.username)}>
-                    <Avatar url={item.profiles?.avatar_url} name={item.profiles?.username} size={36} />
-                  </TouchableOpacity>
-                  <View style={styles.commentBody}>
-                    <View style={styles.commentHeader}>
-                      <TouchableOpacity onPress={() => handleProfile(item.profiles?.username)}>
-                        <Text style={[styles.username, { color: colors.textPrimary }]}>
-                          {item.profiles?.username || 'Unknown'}
-                        </Text>
-                      </TouchableOpacity>
-                      <Text style={[styles.time, { color: colors.textMuted }]}>
-                        {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
-                      </Text>
-                    </View>
-                    <LinkedText
-                      text={item.content}
-                      textStyle={[styles.content, { color: colors.textPrimary }]}
-                      linkColor={colors.brand.primary}
-                    />
-                  </View>
-                  <TouchableOpacity onPress={() => handleFlag(item.id)} style={styles.flagBtn}>
-                    <Flag size={16} color={colors.textMuted} />
-                  </TouchableOpacity>
-                </View>
-              )}
-              ListEmptyComponent={
+            <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+              {!comments || comments.length === 0 ? (
                 <Text style={[styles.emptyText, { color: colors.textMuted }]}>
                   No comments yet. Be the first to comment!
                 </Text>
-              }
-            />
+              ) : (
+                comments.map(item => (
+                  <View style={styles.commentRow} key={item.id}>
+                    <TouchableOpacity onPress={() => handleProfile(item.profiles?.username)}>
+                      <Avatar url={item.profiles?.avatar_url} name={item.profiles?.username} size={36} />
+                    </TouchableOpacity>
+                    <View style={styles.commentBody}>
+                      <View style={styles.commentHeader}>
+                        <TouchableOpacity onPress={() => handleProfile(item.profiles?.username)}>
+                          <Text style={[styles.username, { color: colors.textPrimary }]}>
+                            {item.profiles?.username || 'Unknown'}
+                          </Text>
+                        </TouchableOpacity>
+                        <Text style={[styles.time, { color: colors.textMuted }]}>
+                          {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                        </Text>
+                      </View>
+                      <LinkedText
+                        text={item.content}
+                        textStyle={[styles.content, { color: colors.textPrimary }]}
+                        linkColor={colors.brand.primary}
+                      />
+                    </View>
+                    <TouchableOpacity onPress={() => handleFlag(item.id)} style={styles.flagBtn}>
+                      <Flag size={16} color={colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </ScrollView>
           )}
 
           <View style={[styles.inputContainer, { borderTopColor: colors.borderSubtle }]}>
@@ -242,7 +240,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheetContent: {
-    height: '80%',
+    height: Platform.OS === 'ios' ? '85%' : '100%',
+    maxHeight: 600,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
@@ -262,13 +261,9 @@ const styles = StyleSheet.create({
   closeBtn: {
     padding: 4,
   },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   listContent: {
     padding: 20,
+    paddingBottom: 40,
     gap: 20,
   },
   commentRow: {

@@ -89,10 +89,25 @@ export default function RootLayout() {
       if (!val) {
         await AsyncStorage.setItem('chowbase-has-prompted-push', 'true');
         // Prompt on first launch (not silent)
-        registerGlobalPushNotifications(false).catch(() => {});
+        registerGlobalPushNotifications(false)
+          .then(() => {
+            // If a user is already logged in, link the token to their profile
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser?.id) {
+              linkDeviceTokenToProfile(currentUser.id);
+            }
+          })
+          .catch(() => {});
       } else {
         // Just sync existing status
-        syncPushStatus().catch(() => {});
+        syncPushStatus()
+          .then(() => {
+            const currentUser = useAuthStore.getState().user;
+            if (currentUser?.id) {
+              linkDeviceTokenToProfile(currentUser.id);
+            }
+          })
+          .catch(() => {});
       }
     });
   }, []);

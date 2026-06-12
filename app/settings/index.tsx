@@ -45,6 +45,10 @@ export default function SettingsScreen() {
         }
         
         // Fire off network requests asynchronously so they don't block UI
+        // Unlink push token from this user's profile so the next account doesn't inherit it
+        if (user?.id) {
+          supabase.from('profiles').update({ expo_push_token: null }).eq('id', user.id).then(() => {});
+        }
         supabase.auth.signOut().catch(console.error);
         
         // Clear state and navigate instantly

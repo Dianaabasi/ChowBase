@@ -54,11 +54,11 @@ serve(async (req) => {
         // Target is specific user id
         const { data: profile } = await supabase
           .from('profiles')
-          .select('expo_push_token, push_enabled')
+          .select('expo_push_token')
           .eq('id', target)
           .single();
 
-        if (profile && profile.push_enabled && profile.expo_push_token) {
+        if (profile && profile.expo_push_token) {
           pushMessages.push({
             to: profile.expo_push_token,
             sound: 'default',
@@ -74,12 +74,12 @@ serve(async (req) => {
       
       const { data: profile } = await supabase
         .from('profiles')
-        .select('expo_push_token, push_enabled')
+        .select('expo_push_token')
         .eq('id', recipientId)
         .single();
         
-      if (!profile || !profile.push_enabled || !profile.expo_push_token) {
-        return new Response(JSON.stringify({ message: "User has push notifications disabled or no token" }), { headers: corsHeaders, status: 200 });
+      if (!profile || !profile.expo_push_token) {
+        return new Response(JSON.stringify({ message: "User has no push token" }), { headers: corsHeaders, status: 200 });
       }
 
       // Format message based on notification type

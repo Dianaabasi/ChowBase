@@ -22,24 +22,34 @@ export default function PushSenderPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch users with push notifications enabled
+  const [deviceCount, setDeviceCount] = useState(0);
+
+  // Fetch users with push tokens linked and total device count
   useEffect(() => {
-    const fetchPushUsers = async () => {
+    const fetchPushData = async () => {
       try {
+        // Get total active device tokens (for "All Users" broadcast count)
+        const { count } = await supabase
+          .from('device_push_tokens')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true);
+
+        setDeviceCount(count || 0);
+
+        // Get individual users with tokens (for single-user targeting)
         const { data, error } = await supabase
           .from('profiles')
           .select('id, username, full_name, expo_push_token')
-          .eq('push_enabled', true)
           .not('expo_push_token', 'is', null);
 
         if (error) throw error;
         setUsers(data || []);
       } catch (err) {
-        console.error('Error fetching push users:', err);
+        console.error('Error fetching push data:', err);
       }
     };
 
-    fetchPushUsers();
+    fetchPushData();
   }, []);
 
   const handleSendNotification = async (e: React.FormEvent) => {
@@ -132,7 +142,7 @@ export default function PushSenderPage() {
                 }`}
               >
                 <Users className="h-5 w-5" />
-                All Users ({users.length})
+                All Devices ({deviceCount})
               </button>
               <button
                 type="button"

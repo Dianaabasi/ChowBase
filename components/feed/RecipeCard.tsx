@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Heart, ChatCircle, Timer, Fire } from 'phosphor-react-native';
+import { Heart, ChatCircle, Timer, Fire, Leaf } from 'phosphor-react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { Avatar } from '../ui/Avatar';
 import { Badge } from '../ui/Badge';
@@ -78,18 +78,30 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
           </Text>
 
           <View style={styles.meta}>
-            <View style={styles.metaItem}>
-              <Timer size={16} color={colors.textSecondary} />
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {recipe.prep_time_mins + recipe.cook_time_mins} min
-              </Text>
-            </View>
-            <View style={styles.metaItem}>
-              <Fire size={16} color={colors.textSecondary} />
-              <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                {recipe.kcal} kcal
-              </Text>
-            </View>
+            {recipe.prep_time_mins + recipe.cook_time_mins > 0 && (
+              <View style={styles.metaItem}>
+                <Timer size={16} color={colors.textSecondary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {recipe.prep_time_mins + recipe.cook_time_mins} min
+                </Text>
+              </View>
+            )}
+            {recipe.kcal > 0 && (
+              <View style={styles.metaItem}>
+                <Fire size={16} color={colors.textSecondary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {recipe.kcal} kcal
+                </Text>
+              </View>
+            )}
+            {recipe.healthy_score > 0 && (
+              <View style={styles.metaItem}>
+                <Leaf size={16} color={colors.textSecondary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {recipe.healthy_score}/100
+                </Text>
+              </View>
+            )}
           </View>
 
           <View style={styles.footer}>

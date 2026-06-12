@@ -7,7 +7,7 @@ import * as Clipboard from 'expo-clipboard';
 import { useKeepAwake } from 'expo-keep-awake';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Sparkle, ChatCircle, Heart, ShareNetwork, SpeakerHigh, SpeakerX, CornersOut, ShoppingCart, CookingPot, CaretRight, SealCheck } from 'phosphor-react-native';
+import { Sparkle, ChatCircle, Heart, ShareNetwork, SpeakerHigh, SpeakerX, CornersOut, ShoppingCart, CookingPot, CaretRight, SealCheck, Fire, Leaf, Timer } from 'phosphor-react-native';
 
 import { useThemeColors } from '../../constants/theme';
 import { supabase } from '../../lib/supabase';
@@ -274,6 +274,45 @@ export default function RecipeDetailScreen() {
             </Text>
           )}
 
+          {/* Quick Stats */}
+          <View style={styles.statsRow}>
+            {recipe.kcal > 0 && (
+              <View style={styles.statItem}>
+                <View style={[styles.statIconContainer, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}>
+                  <Fire size={18} color="#EF4444" weight="fill" />
+                </View>
+                <View>
+                  <Text style={[styles.statValue, { color: colors.textPrimary }]}>{recipe.kcal}</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Kcal</Text>
+                </View>
+              </View>
+            )}
+            
+            {recipe.healthy_score > 0 && (
+              <View style={styles.statItem}>
+                <View style={[styles.statIconContainer, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}>
+                  <Leaf size={18} color="#10B981" weight="fill" />
+                </View>
+                <View>
+                  <Text style={[styles.statValue, { color: colors.textPrimary }]}>{recipe.healthy_score}/100</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Health</Text>
+                </View>
+              </View>
+            )}
+
+            {recipe.cook_time_mins > 0 && (
+              <View style={styles.statItem}>
+                <View style={[styles.statIconContainer, { backgroundColor: 'rgba(59, 130, 246, 0.1)' }]}>
+                  <Timer size={18} color="#3B82F6" weight="fill" />
+                </View>
+                <View>
+                  <Text style={[styles.statValue, { color: colors.textPrimary }]}>{recipe.cook_time_mins}m</Text>
+                  <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Cook</Text>
+                </View>
+              </View>
+            )}
+          </View>
+
           {/* Tabs */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity 
@@ -470,7 +509,35 @@ const styles = StyleSheet.create({
     fontFamily: 'DM-Sans',
     fontSize: 15,
     lineHeight: 24,
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 16,
     marginBottom: 24,
+    flexWrap: 'wrap',
+  },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    minWidth: 90,
+  },
+  statIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statValue: {
+    fontFamily: 'Sora-Bold',
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  statLabel: {
+    fontFamily: 'DM-Sans-Medium',
+    fontSize: 12,
   },
   tabsContainer: {
     flexDirection: 'row',

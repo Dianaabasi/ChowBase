@@ -7,7 +7,7 @@
     "runtimeVersion": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true
     },
@@ -58,9 +58,16 @@
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
-          "imageWidth": 600
+          "imageWidth": 320,
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#121212",
+            "imageWidth": 320
+          }
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "extra": {
       "eas": {

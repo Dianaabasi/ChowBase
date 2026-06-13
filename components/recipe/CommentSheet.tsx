@@ -139,7 +139,8 @@ export function CommentSheet({ recipeId, visible, onClose }: CommentSheetProps) 
     >
       <KeyboardAvoidingView 
         style={styles.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'android' ? 0 : 0}
       >
         <TouchableOpacity style={styles.dismissArea} activeOpacity={1} onPress={onClose} />
         
@@ -240,8 +241,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheetContent: {
-    height: Platform.OS === 'ios' ? '85%' : '100%',
-    maxHeight: 600,
+    height: '85%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
